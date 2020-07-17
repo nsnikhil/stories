@@ -1,0 +1,6 @@
+build
+out
+vendor
+.idea
+*.iml
+*.DS_Store

@@ -22,6 +22,14 @@ build: deps compile
 serve: build
 	$(APP_EXECUTABLE) serve
 
+k8-serve:
+	chmod +x build/kube/start.sh
+	./build/kube/start.sh
+
+k8-stop:
+	chmod +x build/kube/stop.sh
+	./build/kube/stop.sh
+
 clean:
 	rm -rf out/
 

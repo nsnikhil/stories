@@ -1,10 +1,40 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: influxdb-creds
+  namespace: stories
+type: Opaque
+stringData:
+  INFLUXDB_DATABASE: local_monitoring
+  INFLUXDB_USERNAME: root
+  INFLUXDB_PASSWORD: root1234
+  INFLUXDB_HOST: influxdb
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: influxdb
+  name: influxdb-pvc
+  namespace: stories
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: monitoring
   labels:
     app: influxdb
   name: influxdb
+  namespace: stories
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -44,3 +74,19 @@ spec:
         - name: var-lib-influxdb
           persistentVolumeClaim:
             claimName: influxdb-pvc
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: influxdb
+  namespace: stories
+spec:
+  selector:
+    app: influxdb
+  ports:
+    - protocol: TCP
+      port: 8086
+      targetPort: 8086
+  type: ClusterIP

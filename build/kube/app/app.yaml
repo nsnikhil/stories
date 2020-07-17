@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: stories
+  namespace: stories
   labels:
     app: stories
 spec:
@@ -28,3 +29,38 @@ spec:
           imagePullPolicy: Never
           ports:
             - containerPort: 8080
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: stories
+  namespace: stories
+spec:
+  selector:
+    app: stories
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: NodePort
+
+---
+
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: stories
+  namespace: stories
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /
+            backend:
+              serviceName: stories
+              servicePort: 8080
