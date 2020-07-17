@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: stories
-          image: nsnikhil10/stories:0.1
+          image: nsnikhil/stories:0.1
           env:
             - name: STATSD_HOST
               value: telegraf
