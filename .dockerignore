@@ -1,3 +1,10 @@
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+
 build
 out
 vendor
@@ -5,3 +12,4 @@ vendor
 *.iml
 *.DS_Store
 env.yaml
+.github
