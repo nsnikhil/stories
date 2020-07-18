@@ -4,3 +4,4 @@ vendor
 .idea
 *.iml
 *.DS_Store
+env.yaml

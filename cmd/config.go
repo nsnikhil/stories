@@ -46,7 +46,7 @@ func initConfigs() {
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		panic(fmt.Errorf("fatal error config file: %s", err))
+		fmt.Println(err)
 	}
 
 	cfg = config{
