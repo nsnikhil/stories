@@ -15,7 +15,7 @@ vet:
 
 compile:
 	mkdir -p out/
-	go build -o $(APP_EXECUTABLE) -ldflags "-X main.version=$(APP_VERSION) -X main.commit=$(APP_COMMIT)" cmd/*.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags "-X main.version=$(APP_VERSION) -X main.commit=$(APP_COMMIT) -extldflags "-static"" -o $(APP_EXECUTABLE) cmd/*.go
 
 build: deps compile
 

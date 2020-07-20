@@ -48,8 +48,8 @@ spec:
     spec:
       containers:
         - name: stories
-          image: nsnikhil/stories:0.1
-          imagePullPolicy: Never
+          image: gcr.io/stories10/stories:0.1
+          imagePullPolicy: IfNotPresent
           envFrom:
             - secretRef:
                 name: app-secrets

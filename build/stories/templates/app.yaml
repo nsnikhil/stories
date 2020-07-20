@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.app.label }}-secrets
+  namespace: {{ .Values.namespace }}
+type: Opaque
+stringData:
+  NEW_RELIC_LICENSE_KEY: "fad9b9e8213895547c7cb693aa6d2092c213NRAL"
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.app.label }}-configs
+  namespace: {{ .Values.namespace }}
+data:
+  APP_HOST: "127.0.0.1"
+  APP_PORT: "8080"
+
+  ENV: "dev"
+
+  NEW_RELIC_APP_NAME: "stories"
+
+  STATSD_HOST: "telegraf"
+  STATSD_PORT: "8125"
+  STATSD_NAMESPACE: "stories"
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.label }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.app.label }}
+spec:
+  replicas: {{ .Values.app.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.app.label }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.label }}
+        role: backend
+    spec:
+      containers:
+        - name: {{ .Values.app.label }}
+          image: {{ .Values.app.image }}
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - secretRef:
+                name: {{ .Values.app.label }}-secrets
+            - configMapRef:
+                name: {{ .Values.app.label }}-configs
+          ports:
+            - containerPort: {{ .Values.app.port }}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.label }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: {{ .Values.app.label }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.app.port }}
+      targetPort: {{ .Values.app.port }}
+  type: {{ .Values.app.serviceType }}
+
+---
+
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: {{ .Values.app.label }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    {{- range $key, $value := .Values.ingress.annotations }}
+    {{ $key }}: {{ $value | quote }}
+  {{- end }}
+spec:
+  rules:
+    - http:
+        paths:
+          - path: {{ .Values.app.path }}
+            backend:
+              serviceName: {{ .Values.app.label }}
+              servicePort: {{ .Values.app.port }}

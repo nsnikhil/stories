@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Secret
 metadata:
-  name: grafana-creds
-  namespace: stories
+  name: {{ .Values.grafana.label }}-creds
+  namespace: {{ .Values.namespace }}
 type: Opaque
 stringData:
-  GF_SECURITY_ADMIN_USER: admin
-  GF_SECURITY_ADMIN_PASSWORD: admin1234
+  GF_SECURITY_ADMIN_USER: {{ .Values.grafana.adminUser }}
+  GF_SECURITY_ADMIN_PASSWORD: {{ .Values.grafana.adminUserPassword }}
 
 ---
 
@@ -14,16 +14,16 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: grafana
-  name: grafana
-  namespace: stories
+    app: {{ .Values.grafana.label }}
+  name: {{ .Values.grafana.label }}
+  namespace: {{ .Values.namespace }}
 spec:
   progressDeadlineSeconds: 600
-  replicas: 1
+  replicas: {{ .Values.grafana.replicas }}
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      app: grafana
+      app: {{ .Values.grafana.label }}
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -32,13 +32,13 @@ spec:
   template:
     metadata:
       labels:
-        app: grafana
+        app: {{ .Values.grafana.label }}
     spec:
       containers:
         - envFrom:
             - secretRef:
-                name: grafana-creds
-          image: docker.io/grafana/grafana:latest
+                name: {{ .Values.grafana.label }}-creds
+          image: {{ .Values.grafana.image }}
           imagePullPolicy: IfNotPresent
           name: grafana
           resources: {}
@@ -55,13 +55,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: grafana
-  namespace: stories
+  name: {{ .Values.grafana.label }}
+  namespace: {{ .Values.namespace }}
 spec:
   selector:
-    app: grafana
+    app: {{ .Values.grafana.label }}
   ports:
     - protocol: TCP
-      port: 3000
-      targetPort: 3000
-  type: NodePort
+      port: {{ .Values.grafana.port }}
+      targetPort: {{ .Values.grafana.targetPort }}
+  type: {{ .Values.grafana.serviceType }}

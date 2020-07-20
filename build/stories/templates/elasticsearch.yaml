@@ -1,0 +1,95 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ .Values.elasticsearch.label }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.elasticsearch.label }}
+spec:
+  selector:
+    app: {{ .Values.elasticsearch.label }}
+  clusterIP: None
+  ports:
+    - port: {{ .Values.elasticsearch.restPort }}
+      name: rest
+    - port: {{ .Values.elasticsearch.interNodePort }}
+      name: inter-node
+
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.elasticsearch.clusterName }}
+  namespace: {{ .Values.namespace }}
+spec:
+  serviceName: {{ .Values.elasticsearch.label }}
+  replicas: {{ .Values.elasticsearch.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.elasticsearch.label }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.elasticsearch.label }}
+    spec:
+      containers:
+        - name: {{ .Values.elasticsearch.label }}
+          image: {{ .Values.elasticsearch.image }}
+          resources:
+            limits:
+              cpu: {{ .Values.elasticsearch.cpuLimit }}
+            requests:
+              cpu: {{ .Values.elasticsearch.cpuRequest }}
+          ports:
+            - containerPort: {{ .Values.elasticsearch.restPort }}
+              name: rest
+              protocol: TCP
+            - containerPort: {{ .Values.elasticsearch.interNodePort }}
+              name: inter-node
+              protocol: TCP
+          volumeMounts:
+            - name: data
+              mountPath: /usr/share/elasticsearch/data
+          env:
+            - name: cluster.name
+              value: k8s-logs
+            - name: node.name
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: discovery.seed_hosts
+              value: {{ .Values.elasticsearch.seedHosts }}
+            - name: cluster.initial_master_nodes
+              value: {{ .Values.elasticsearch.initialMasterNodes }}
+            - name: ES_JAVA_OPTS
+              value: "-Xms512m -Xmx512m"
+      initContainers:
+        - name: fix-permissions
+          image: busybox
+          command: ["sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data"]
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: data
+              mountPath: /usr/share/elasticsearch/data
+        - name: increase-vm-max-map
+          image: busybox
+          command: ["sysctl", "-w", "vm.max_map_count=262144"]
+          securityContext:
+            privileged: true
+        - name: increase-fd-ulimit
+          image: busybox
+          command: ["sh", "-c", "ulimit -n 65536"]
+          securityContext:
+            privileged: true
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          app: {{ .Values.elasticsearch.label }}
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: {{ .Values.elasticsearch.storage }}
