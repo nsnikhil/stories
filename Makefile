@@ -1,5 +1,5 @@
 APP=stories
-APP_VERSION:="0.1"
+APP_VERSION:=0.1
 APP_COMMIT:=$(shell git rev-parse HEAD)
 APP_EXECUTABLE="./out/$(APP)"
 ALL_PACKAGES=$(shell go list ./... | grep -v "vendor")
@@ -21,6 +21,9 @@ compile:
 	go build -ldflags "-X main.version=$(APP_VERSION) -X main.commit=$(APP_COMMIT)" -o $(APP_EXECUTABLE) cmd/*.go
 
 build: deps compile
+
+docker-build:
+	docker build -t nsnikhil/$(APP):$(APP_VERSION) .
 
 serve: build
 	$(APP_EXECUTABLE) serve
