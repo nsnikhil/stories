@@ -14,7 +14,6 @@ func start(command string) {
 		panic(fmt.Errorf("invalid command %s", command))
 	}
 
-	logger.Info(command)
 	newCommand(command, commands[command]).execute()
 }
 
