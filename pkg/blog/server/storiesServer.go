@@ -6,14 +6,17 @@ import (
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/newrelic/go-agent/_integrations/nrgrpc"
+	"github.com/nsnikhil/stories/cmd/config"
 	"github.com/nsnikhil/stories/pkg/blog/proto"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 	"gopkg.in/alexcesaro/statsd.v2"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 type storiesServer struct {
@@ -26,13 +29,16 @@ func newStoriesServer(logger *zap.Logger) *storiesServer {
 	}
 }
 
-func StartServer(address string, logger *zap.Logger, nrApp newrelic.Application, sc *statsd.Client) {
-	listener, err := net.Listen("tcp", address)
+func StartServer(cfg config.ServerConfig, logger *zap.Logger, nrApp newrelic.Application, sc *statsd.Client) {
+	listener, err := net.Listen("tcp", cfg.Address())
 	if err != nil {
 		logger.Sugar().Fatalf("failed to listen: %v", err)
 	}
 
 	grpcServer := grpc.NewServer(
+		grpc.KeepaliveParams(keepalive.ServerParameters{
+			MaxConnectionIdle: time.Minute * time.Duration(cfg.IdleConnectionTimeoutInMinutes()),
+		}),
 		grpc.UnaryInterceptor(
 			grpc_middleware.ChainUnaryServer(
 				withStatsD(sc),
@@ -53,6 +59,7 @@ func StartServer(address string, logger *zap.Logger, nrApp newrelic.Application,
 	proto.RegisterStoriesApiServer(grpcServer, storiesServer)
 	proto.RegisterHealthServer(grpcServer, healthServer)
 
+	logger.Sugar().Infof("listening on %s", cfg.Address())
 	go func() {
 		if err := grpcServer.Serve(listener); err != nil {
 			panic(err)

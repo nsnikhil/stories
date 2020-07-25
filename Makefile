@@ -7,6 +7,9 @@ ALL_PACKAGES=$(shell go list ./... | grep -v "vendor")
 deps:
 	go mod download
 
+tidy:
+	go mod tidy
+
 fmt:
 	go fmt $(ALL_PACKAGES)
 
@@ -15,20 +18,12 @@ vet:
 
 compile:
 	mkdir -p out/
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags "-X main.version=$(APP_VERSION) -X main.commit=$(APP_COMMIT) -extldflags "-static"" -o $(APP_EXECUTABLE) cmd/*.go
+	go build -ldflags "-X main.version=$(APP_VERSION) -X main.commit=$(APP_COMMIT)" -o $(APP_EXECUTABLE) cmd/*.go
 
 build: deps compile
 
 serve: build
 	$(APP_EXECUTABLE) serve
-
-k8-serve:
-	chmod +x build/kube/start.sh
-	./build/kube/start.sh
-
-k8-stop:
-	chmod +x build/kube/stop.sh
-	./build/kube/stop.sh
 
 clean:
 	rm -rf out/

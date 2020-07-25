@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	newrelic "github.com/newrelic/go-agent"
+	"github.com/nsnikhil/stories/cmd/config"
 	"go.uber.org/zap"
 	"gopkg.in/alexcesaro/statsd.v2"
 )
@@ -11,16 +12,16 @@ var logger *zap.Logger
 var nrApp newrelic.Application
 var sc *statsd.Client
 
-func initReporters() {
-	initLogger()
-	initNewRelic()
-	initStatsD()
+func initReporters(cfg config.Config) {
+	initLogger(cfg.GetEnv())
+	initNewRelic(cfg.GetNewRelicConfig())
+	initStatsD(cfg.GetStatsDConfig())
 }
 
-func initLogger() {
+func initLogger(env string) {
 	var err error
 
-	if cfg.env == dev {
+	if env == dev {
 		logger, err = zap.NewDevelopmentConfig().Build()
 	} else {
 		logger, err = zap.NewProductionConfig().Build()
@@ -37,17 +38,17 @@ func initLogger() {
 	}()
 }
 
-func initNewRelic() {
+func initNewRelic(nrc config.NewRelicConfig) {
 	var err error
-	nrApp, err = newrelic.NewApplication(newrelic.NewConfig(cfg.nr.appName, cfg.nr.licenseKey))
+	nrApp, err = newrelic.NewApplication(newrelic.NewConfig(nrc.AppName(), nrc.LicenseKey()))
 	if err != nil {
 		panic(err)
 	}
 }
 
-func initStatsD() {
+func initStatsD(sdc config.StatsDConfig) {
 	var err error
-	sc, err = statsd.New(statsd.Address(cfg.sdc.address()), statsd.Prefix(cfg.sdc.namespace))
+	sc, err = statsd.New(statsd.Address(sdc.Address()), statsd.Prefix(sdc.Namespace()))
 	if err != nil {
 		panic(err)
 	}
