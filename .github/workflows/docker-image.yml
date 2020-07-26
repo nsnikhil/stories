@@ -7,7 +7,7 @@ on:
 
 jobs:
       
-  build and puslish:
+  build_and_push:
     name: Test
     runs-on: ubuntu-latest
     steps:
