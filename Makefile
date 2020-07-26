@@ -25,6 +25,9 @@ build: deps compile
 docker-build:
 	docker build -t nsnikhil/$(APP):$(APP_VERSION) .
 
+docker-push: docker-build
+	docker push nsnikhil/$(APP):$(APP_VERSION)
+
 serve: build
 	$(APP_EXECUTABLE) serve
 

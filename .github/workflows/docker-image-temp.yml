@@ -1,0 +1,19 @@
+name: Docker Build and Publish
+
+on:
+  push:
+    tags:
+    - '*'
+
+jobs:
+      
+  build_and_push:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Build and push Docker images
+        uses: make docker-push
