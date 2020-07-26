@@ -1,7 +1,19 @@
 language: go
 
 go:
-  - 1.14
+  - "1.14"
 
-script:
-  - make test
+services:
+  - docker
+
+jobs:
+  include:
+
+    - stage: test
+      script: make test
+
+    - stage: build and push
+      script:
+        - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+        - make docker-push
+
