@@ -8,9 +8,8 @@ on:
 jobs:
       
   build and puslish:
-    
+    name: Test
     runs-on: ubuntu-latest
-    
     steps:
       
       - name: Checkout code
