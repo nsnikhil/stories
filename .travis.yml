@@ -6,6 +6,9 @@ go:
 services:
   - docker
 
+env:
+  - GOPRIVATE=github.com/nsnikhil
+
 jobs:
   include:
 
