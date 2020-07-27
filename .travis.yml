@@ -9,6 +9,9 @@ services:
 env:
   - GOPRIVATE=github.com/nsnikhil
 
+before_install:
+  - git config --global url."git@github.com:".insteadOf "https://github.com/"
+
 jobs:
   include:
 
