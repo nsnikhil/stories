@@ -13,7 +13,7 @@ jobs:
       script: make test
 
     - stage: build and push
-      if: tag IS present AND branch = master AND tag =~ ^\d+\.\d+(\.\d+)?$ AND fork = false
+      if: tag IS present AND tag =~ ^\d+\.\d+(\.\d+)?$
       script:
         - echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
         - make docker-push
