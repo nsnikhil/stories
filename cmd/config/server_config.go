@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
 )
 
 type ServerConfig struct {
@@ -13,9 +12,9 @@ type ServerConfig struct {
 
 func newServerConfig() ServerConfig {
 	return ServerConfig{
-		host:                           viper.GetString("APP_HOST"),
-		port:                           viper.GetString("APP_PORT"),
-		idleConnectionTimeoutInMinutes: viper.GetInt("IDLE_CONNECTION_TIMEOUT_IN_MINUTES"),
+		host:                           getString("APP_HOST"),
+		port:                           getString("APP_PORT"),
+		idleConnectionTimeoutInMinutes: getInt("IDLE_CONNECTION_TIMEOUT_IN_MINUTES"),
 	}
 }
 

@@ -17,3 +17,5 @@ env.yaml
 *.pem
 *.crt
 *.key
+
+playground.go

@@ -1,13 +1,13 @@
 package server
 
 import (
-	"context"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/newrelic/go-agent/_integrations/nrgrpc"
+	"github.com/nsnikhil/stories-proto/proto"
 	"github.com/nsnikhil/stories/cmd/config"
-	"github.com/nsnikhil/stories/pkg/blog/proto"
+	"github.com/nsnikhil/stories/pkg/blog/service"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -21,6 +21,7 @@ import (
 
 type storiesServer struct {
 	logger *zap.Logger
+	svc    service.Service
 }
 
 func newStoriesServer(logger *zap.Logger) *storiesServer {
@@ -74,9 +75,4 @@ func waitForShutdown(grpcServer *grpc.Server) {
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 	<-sigCh
 	grpcServer.GracefulStop()
-}
-
-func (ss *storiesServer) Ping(ctx context.Context, in *proto.PingRequest) (*proto.PingResponse, error) {
-	ss.logger.Info("[storiesServer] [Ping]")
-	return &proto.PingResponse{Message: "pong"}, nil
 }

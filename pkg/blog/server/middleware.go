@@ -39,7 +39,7 @@ func withStatsD(sc *statsd.Client) func(ctx context.Context, req interface{}, in
 			inc(m, success, sc)
 		}
 
-		tm.Send(fmt.Sprintf("%s.%s.counter", "ping", "time"))
+		tm.Send(fmt.Sprintf("%s.%s.counter", m, "time"))
 		return h, err
 	}
 }

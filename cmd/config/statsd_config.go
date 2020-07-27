@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
 )
 
 type StatsDConfig struct {
@@ -13,9 +12,9 @@ type StatsDConfig struct {
 
 func newStatsDConfig() StatsDConfig {
 	return StatsDConfig{
-		host:      viper.GetString("STATSD_HOST"),
-		port:      viper.GetString("STATSD_PORT"),
-		namespace: viper.GetString("STATSD_NAMESPACE"),
+		host:      getString("STATSD_HOST"),
+		port:      getString("STATSD_PORT"),
+		namespace: getString("STATSD_NAMESPACE"),
 	}
 }
 

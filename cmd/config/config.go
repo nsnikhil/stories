@@ -10,6 +10,7 @@ type Config struct {
 	sc  ServerConfig
 	nr  NewRelicConfig
 	sdc StatsDConfig
+	dbc DatabaseConfig
 }
 
 func (c Config) GetServerConfig() ServerConfig {
@@ -22,6 +23,10 @@ func (c Config) GetNewRelicConfig() NewRelicConfig {
 
 func (c Config) GetStatsDConfig() StatsDConfig {
 	return c.sdc
+}
+
+func (c Config) GetDatabaseConfig() DatabaseConfig {
+	return c.dbc
 }
 
 func (c Config) GetEnv() string {
@@ -40,10 +45,11 @@ func LoadConfigs() Config {
 	}
 
 	return Config{
-		env: viper.GetString("ENV"),
+		env: getString("ENV"),
 		sc:  newServerConfig(),
 		nr:  newNewRelicConfig(),
 		sdc: newStatsDConfig(),
+		dbc: newDatabaseConfig(),
 	}
 
 }

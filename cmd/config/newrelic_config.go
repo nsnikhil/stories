@@ -1,7 +1,5 @@
 package config
 
-import "github.com/spf13/viper"
-
 type NewRelicConfig struct {
 	appName    string
 	licenseKey string
@@ -17,7 +15,7 @@ func (nrc NewRelicConfig) LicenseKey() string {
 
 func newNewRelicConfig() NewRelicConfig {
 	return NewRelicConfig{
-		appName:    viper.GetString("NEW_RELIC_APP_NAME"),
-		licenseKey: viper.GetString("NEW_RELIC_LICENSE_KEY"),
+		appName:    getString("NEW_RELIC_APP_NAME"),
+		licenseKey: getString("NEW_RELIC_LICENSE_KEY"),
 	}
 }

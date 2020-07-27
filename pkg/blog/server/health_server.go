@@ -2,7 +2,7 @@ package server
 
 import (
 	"context"
-	"github.com/nsnikhil/stories/pkg/blog/proto"
+	"github.com/nsnikhil/stories-proto/proto"
 )
 
 type healthServer struct {
