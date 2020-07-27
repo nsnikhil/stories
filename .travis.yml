@@ -13,8 +13,9 @@ jobs:
       script: make test
 
     - stage: build and push
-      if: (tag IS present) AND (branch = master)
       on:
+        branch: master
+        tags: true
         condition: $TRAVIS_TAG =~ ^\d+\.\d+(\.\d+)?$
       script:
         - echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
