@@ -2,8 +2,8 @@ package store
 
 import (
 	"errors"
+	"fmt"
 	"github.com/jinzhu/gorm"
-	"github.com/lib/pq"
 	"github.com/nsnikhil/stories/cmd/config"
 	"github.com/nsnikhil/stories/pkg/blog/domain"
 	"github.com/stretchr/testify/assert"
@@ -215,12 +215,16 @@ func TestGetStories(t *testing.T) {
 			actualResult: func() ([]domain.Story, error) {
 				stories, err := store.GetStories("ced5aa3b-b39a-4da4-b8bf-d03e3c8daa7a", "abc")
 
+				if err != nil {
+					return nil, fmt.Errorf("invalid uuid %s", "abc")
+				}
+
 				return stories, err
 			},
 			expectedResult: func() []domain.Story {
 				return []domain.Story{}
 			},
-			expectedError: &pq.Error{Severity: "ERROR", Code: "22P02", Message: "invalid input syntax for type uuid: \"abc\"", Detail: "", Hint: "", Position: "", InternalPosition: "", InternalQuery: "", Where: "", Schema: "", Table: "", Column: "", DataTypeName: "", Constraint: "", File: "uuid.c", Line: "137", Routine: "string_to_uuid"},
+			expectedError: errors.New("invalid uuid abc"),
 		},
 	}
 
