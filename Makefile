@@ -4,6 +4,12 @@ APP_COMMIT:=$(shell git rev-parse HEAD)
 APP_EXECUTABLE="./out/$(APP)"
 ALL_PACKAGES=$(shell go list ./... | grep -v "vendor")
 
+setup: copy-config init-db migrate test
+
+init-db:
+	psql -c 'create user storiesuser superuser' -U postgres
+	psql -c 'create database storiesdb owner=storiesuser' -U postgres
+
 deps:
 	go mod download
 
@@ -41,7 +47,7 @@ test:
 	go clean -testcache
 	go test ./...
 
-ci-test: copy-config test
+ci-test: copy-config init-db migrate test
 
 test-cover-html:
 	go clean -testcache

@@ -10,9 +10,6 @@ services:
 env:
   - GOPRIVATE=github.com/nsnikhil
 
-before_script:
-  - psql -c 'create database stories;' -U postgres
-
 before_install:
   - git config --global url."git@github.com:".insteadOf "https://github.com/"
 
