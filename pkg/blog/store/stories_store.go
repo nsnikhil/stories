@@ -1,15 +1,13 @@
 package store
 
-import "github.com/nsnikhil/stories/pkg/blog/dto"
+import (
+	"github.com/nsnikhil/stories/pkg/blog/domain"
+)
 
 type StoriesStore interface {
-	AddStory(story *dto.Story) error
-	GetStories(storyIDs ...string) ([]dto.Story, error)
-	GetMostViewsStories(offset, limit int) ([]dto.Story, error)
-	GetTopRatedStories(offset, limit int) ([]dto.Story, error)
-}
-
-type StoriesCache interface {
-	AddStory(story *dto.Story) error
-	GetStoryIDs(query string) ([]string, error)
+	AddStory(story *domain.Story) error
+	GetStories(storyIDs ...string) ([]domain.Story, error)
+	UpdateStory(story *domain.Story) (int64, error)
+	GetMostViewsStories(offset, limit int) ([]domain.Story, error)
+	GetTopRatedStories(offset, limit int) ([]domain.Story, error)
 }

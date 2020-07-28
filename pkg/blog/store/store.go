@@ -1,14 +1,14 @@
 package store
 
 type Store struct {
-	ss StoriesStore
 	sc StoriesCache
+	ss StoriesStore
 }
 
-func NewStore(sc StoriesCache, ss StoriesStore) *Store {
+func NewStore(ss StoriesStore, sc StoriesCache) *Store {
 	return &Store{
-		sc: sc,
 		ss: ss,
+		sc: sc,
 	}
 }
 

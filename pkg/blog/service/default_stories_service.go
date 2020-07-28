@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/nsnikhil/stories/pkg/blog/dao"
+	"github.com/nsnikhil/stories/pkg/blog/domain"
 	"github.com/nsnikhil/stories/pkg/blog/store"
 	"go.uber.org/zap"
 )
@@ -18,22 +18,22 @@ func NewDefaultStoriesService(logger *zap.Logger, store store.Store) StoriesServ
 	}
 }
 
-func (dss *DefaultStoriesService) AddStory(story *dao.Story) error {
+func (dss *DefaultStoriesService) AddStory(story *domain.Story) error {
 	return nil
 }
 
-func (dss *DefaultStoriesService) GetStory(storyID string) (*dao.Story, error) {
+func (dss *DefaultStoriesService) GetStory(storyID string) (*domain.Story, error) {
 	return nil, nil
 }
 
-func (dss *DefaultStoriesService) SearchStories(query string) ([]dao.Story, error) {
+func (dss *DefaultStoriesService) SearchStories(query string) ([]domain.Story, error) {
 	return nil, nil
 }
 
-func (dss *DefaultStoriesService) GetMostViewsStories(offset, limit int) ([]dao.Story, error) {
+func (dss *DefaultStoriesService) GetMostViewsStories(offset, limit int) ([]domain.Story, error) {
 	return nil, nil
 }
 
-func (dss *DefaultStoriesService) GetTopRatedStories(offset, limit int) ([]dao.Story, error) {
+func (dss *DefaultStoriesService) GetTopRatedStories(offset, limit int) ([]domain.Story, error) {
 	return nil, nil
 }

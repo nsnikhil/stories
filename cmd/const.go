@@ -5,7 +5,9 @@ const (
 	appDescription = "Anonymous blogging application"
 	appVersion     = "0.1"
 
-	serve = "serve"
+	serveCommand    = "serve"
+	migrateCommand  = "migrate"
+	rollbackCommand = "rollback"
 
 	dev        = "dev"
 	production = "production"

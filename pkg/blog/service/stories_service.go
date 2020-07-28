@@ -1,11 +1,11 @@
 package service
 
-import "github.com/nsnikhil/stories/pkg/blog/dao"
+import "github.com/nsnikhil/stories/pkg/blog/domain"
 
 type StoriesService interface {
-	AddStory(story *dao.Story) error
-	GetStory(storyID string) (*dao.Story, error)
-	SearchStories(query string) ([]dao.Story, error)
-	GetMostViewsStories(offset, limit int) ([]dao.Story, error)
-	GetTopRatedStories(offset, limit int) ([]dao.Story, error)
+	AddStory(story *domain.Story) error
+	GetStory(storyID string) (*domain.Story, error)
+	SearchStories(query string) ([]domain.Story, error)
+	GetMostViewsStories(offset, limit int) ([]domain.Story, error)
+	GetTopRatedStories(offset, limit int) ([]domain.Story, error)
 }

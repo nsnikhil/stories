@@ -43,3 +43,9 @@ test-cover-html:
 	mkdir -p out/
 	go test ./... -coverprofile=out/coverage.out
 	go tool cover -html=out/coverage.out
+
+migrate: build
+	$(APP_EXECUTABLE) migrate
+
+rollback: build
+	$(APP_EXECUTABLE) rollback

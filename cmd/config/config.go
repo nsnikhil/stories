@@ -11,6 +11,7 @@ type Config struct {
 	nr  NewRelicConfig
 	sdc StatsDConfig
 	dbc DatabaseConfig
+	bc  BlogConfig
 }
 
 func (c Config) GetServerConfig() ServerConfig {
@@ -33,11 +34,16 @@ func (c Config) GetEnv() string {
 	return c.env
 }
 
+func (c Config) GetBlogConfig() BlogConfig {
+	return c.bc
+}
+
 func LoadConfigs() Config {
 	viper.AutomaticEnv()
 	viper.SetConfigName("env")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("./")
+	viper.AddConfigPath("./../../../")
 
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -50,6 +56,7 @@ func LoadConfigs() Config {
 		nr:  newNewRelicConfig(),
 		sdc: newStatsDConfig(),
 		dbc: newDatabaseConfig(),
+		bc:  newBlogConfig(),
 	}
 
 }

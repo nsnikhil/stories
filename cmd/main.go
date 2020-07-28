@@ -7,7 +7,9 @@ import (
 
 func start(command string) {
 	commands := map[string]func(){
-		"serve": startServer,
+		serveCommand:    startServer,
+		migrateCommand:  runMigrations,
+		rollbackCommand: rollBackMigrations,
 	}
 
 	if commands[command] == nil {
