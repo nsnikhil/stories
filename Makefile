@@ -34,9 +34,14 @@ serve: build
 clean:
 	rm -rf out/
 
+copy-config:
+	cp env.sample env.yaml
+
 test:
 	go clean -testcache
 	go test ./...
+
+ci-test: copy-config test
 
 test-cover-html:
 	go clean -testcache
