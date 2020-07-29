@@ -19,6 +19,11 @@ func (mock *MockStoriesService) GetStory(storyID string) (*domain.Story, error) 
 	return args.Get(0).(*domain.Story), args.Error(1)
 }
 
+func (mock *MockStoriesService) UpdateStory(story *domain.Story) (int64, error) {
+	args := mock.Called(story)
+	return args.Get(0).(int64), args.Error(1)
+}
+
 func (mock *MockStoriesService) SearchStories(query string) ([]domain.Story, error) {
 	args := mock.Called(query)
 	return args.Get(0).([]domain.Story), args.Error(1)

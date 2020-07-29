@@ -19,7 +19,7 @@ var punctuations = map[int32]bool{
 	33: true, 44: true, 46: true, 58: true, 59: true, 63: true,
 }
 
-type trie interface {
+type Trie interface {
 	insert(s, id string) []error
 	getIDs(query string) (map[string]bool, []error)
 }
@@ -151,7 +151,7 @@ func index(char int32) (int32, error) {
 	return invalidIndex, fmt.Errorf("%c is not a valid character", char)
 }
 
-func newCharacterTrie() trie {
+func NewCharacterTrie() Trie {
 	return &characterTrie{
 		root: newTrieNode(),
 	}

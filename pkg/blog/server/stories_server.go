@@ -7,7 +7,6 @@ import (
 	"github.com/newrelic/go-agent/_integrations/nrgrpc"
 	"github.com/nsnikhil/stories-proto/proto"
 	"github.com/nsnikhil/stories/cmd/config"
-	"github.com/nsnikhil/stories/pkg/blog/service"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -20,25 +19,25 @@ import (
 )
 
 type storiesServer struct {
-	logger *zap.Logger
-	svc    service.Service
+	deps *deps
+	proto.UnimplementedStoriesApiServer
 }
 
-func newStoriesServer(logger *zap.Logger) *storiesServer {
+func newStoriesServer(deps *deps) *storiesServer {
 	return &storiesServer{
-		logger: logger,
+		deps: deps,
 	}
 }
 
-func StartServer(cfg config.ServerConfig, logger *zap.Logger, nrApp newrelic.Application, sc *statsd.Client) {
-	listener, err := net.Listen("tcp", cfg.Address())
+func StartServer(cfg config.Config, logger *zap.Logger, nrApp newrelic.Application, sc *statsd.Client) {
+	listener, err := net.Listen("tcp", cfg.GetServerConfig().Address())
 	if err != nil {
 		logger.Sugar().Fatalf("failed to listen: %v", err)
 	}
 
 	grpcServer := grpc.NewServer(
 		grpc.KeepaliveParams(keepalive.ServerParameters{
-			MaxConnectionIdle: time.Minute * time.Duration(cfg.IdleConnectionTimeoutInMinutes()),
+			MaxConnectionIdle: time.Minute * time.Duration(cfg.GetServerConfig().IdleConnectionTimeoutInMinutes()),
 		}),
 		grpc.UnaryInterceptor(
 			grpc_middleware.ChainUnaryServer(
@@ -55,12 +54,13 @@ func StartServer(cfg config.ServerConfig, logger *zap.Logger, nrApp newrelic.App
 		),
 	)
 
-	storiesServer := newStoriesServer(logger)
+	deps := newDeps(getService(cfg, logger), cfg, logger)
+	storiesServer := newStoriesServer(deps)
 	healthServer := newHealthServer()
 	proto.RegisterStoriesApiServer(grpcServer, storiesServer)
 	proto.RegisterHealthServer(grpcServer, healthServer)
 
-	logger.Sugar().Infof("listening on %s", cfg.Address())
+	logger.Sugar().Infof("listening on %s", cfg.GetServerConfig().Address())
 	go func() {
 		if err := grpcServer.Serve(listener); err != nil {
 			panic(err)

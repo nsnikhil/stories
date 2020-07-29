@@ -13,7 +13,7 @@ func TestCreateNewTrieNode(t *testing.T) {
 }
 
 func TestCreateNewTrie(t *testing.T) {
-	actualResult := newCharacterTrie()
+	actualResult := NewCharacterTrie()
 	expectedResult := &characterTrie{root: newTrieNode()}
 	assert.Equal(t, expectedResult, actualResult)
 }
@@ -29,7 +29,7 @@ func TestTrieInsert(t *testing.T) {
 			actualResult: func() []error {
 				res := make([]error, 0)
 
-				ct := newCharacterTrie()
+				ct := NewCharacterTrie()
 
 				sentence := "this is a sentence with only small letters"
 				res = append(res, ct.insert(sentence, "36982b87-be33-4683-aaaa-e69282a03c83")...)
@@ -46,7 +46,7 @@ func TestTrieInsert(t *testing.T) {
 			actualResult: func() []error {
 				res := make([]error, 0)
 
-				ct := newCharacterTrie()
+				ct := NewCharacterTrie()
 
 				sentence := "This is a sentence with small and BIG letters"
 				res = append(res, ct.insert(sentence, "36982b87-be33-4683-aaaa-e69282a03c83")...)
@@ -63,7 +63,7 @@ func TestTrieInsert(t *testing.T) {
 			actualResult: func() []error {
 				res := make([]error, 0)
 
-				ct := newCharacterTrie()
+				ct := NewCharacterTrie()
 
 				sentence := "this a sentence which contains number 1 2 45"
 				res = append(res, ct.insert(sentence, "36982b87-be33-4683-aaaa-e69282a03c83")...)
@@ -81,7 +81,7 @@ func TestTrieInsert(t *testing.T) {
 			actualResult: func() []error {
 				res := make([]error, 0)
 
-				ct := newCharacterTrie()
+				ct := NewCharacterTrie()
 
 				sentence := "this a sentence which, contains symbols %$ ^& @"
 				res = append(res, ct.insert(sentence, "36982b87-be33-4683-aaaa-e69282a03c83")...)
@@ -113,7 +113,7 @@ func TestTrieGetIds(t *testing.T) {
 		{
 			name: "test get ids when only small letters are present",
 			actualResult: func() (map[string]bool, []error) {
-				ct := newCharacterTrie()
+				ct := NewCharacterTrie()
 				sentence := "this is a sentence with only small letters"
 				ct.insert(sentence, "36982b87-be33-4683-aaaa-e69282a03c83")
 
@@ -131,7 +131,7 @@ func TestTrieGetIds(t *testing.T) {
 		{
 			name: "test get ids when both small and large letters are present",
 			actualResult: func() (map[string]bool, []error) {
-				ct := newCharacterTrie()
+				ct := NewCharacterTrie()
 				sentence := "This is a sentence with small and BIG letters"
 				ct.insert(sentence, "36982b87-be33-4683-aaaa-e69282a03c83")
 
@@ -149,7 +149,7 @@ func TestTrieGetIds(t *testing.T) {
 		{
 			name: "test get ids punctuations are present",
 			actualResult: func() (map[string]bool, []error) {
-				ct := newCharacterTrie()
+				ct := NewCharacterTrie()
 
 				sentence := "this! one"
 				ct.insert(sentence, "36982b87-be33-4683-aaaa-e69282a03c83")
@@ -187,7 +187,7 @@ func TestTrieGetIds(t *testing.T) {
 		{
 			name: "test get errors when sentence contains symbols",
 			actualResult: func() (map[string]bool, []error) {
-				ct := newCharacterTrie()
+				ct := NewCharacterTrie()
 				sentence := "This is a sentence with small and BIG letters"
 				ct.insert(sentence, "36982b87-be33-4683-aaaa-e69282a03c83")
 
@@ -202,7 +202,7 @@ func TestTrieGetIds(t *testing.T) {
 		{
 			name: "test get errors when words are not found",
 			actualResult: func() (map[string]bool, []error) {
-				ct := newCharacterTrie()
+				ct := NewCharacterTrie()
 				sentence := "This is a sentence with small and BIG letters"
 				ct.insert(sentence, "36982b87-be33-4683-aaaa-e69282a03c83")
 

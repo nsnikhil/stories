@@ -6,10 +6,6 @@ import (
 )
 
 func (ss *storiesServer) Ping(ctx context.Context, in *proto.PingRequest) (*proto.PingResponse, error) {
-	ss.logger.Info("[storiesServer] [Ping]")
+	ss.deps.logger.Debug("[storiesServer] [ping]")
 	return &proto.PingResponse{Message: "pong"}, nil
 }
-
-
-
-

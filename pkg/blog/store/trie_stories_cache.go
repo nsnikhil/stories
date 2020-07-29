@@ -6,11 +6,11 @@ import (
 )
 
 type TrieStoriesCache struct {
-	trie   trie
+	trie   Trie
 	logger *zap.Logger
 }
 
-func NewTrieStoriesCache(trie trie, logger *zap.Logger) StoriesCache {
+func NewTrieStoriesCache(trie Trie, logger *zap.Logger) StoriesCache {
 	return &TrieStoriesCache{
 		trie:   trie,
 		logger: logger,

@@ -6,6 +6,7 @@ import (
 )
 
 type healthServer struct {
+	proto.UnimplementedHealthServer
 }
 
 func newHealthServer() *healthServer {
