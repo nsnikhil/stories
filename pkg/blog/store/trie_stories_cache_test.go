@@ -2,6 +2,7 @@ package store
 
 import (
 	"errors"
+	"github.com/nsnikhil/stories/cmd/config"
 	"github.com/nsnikhil/stories/pkg/blog/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -12,14 +13,17 @@ import (
 func TestCreateNewStoriesCache(t *testing.T) {
 	tr := &mockTrie{}
 	lgr := zap.NewExample()
+	cfg := config.LoadConfigs().GetBlogConfig()
 
-	actualResult := NewTrieStoriesCache(tr, lgr)
-	expectedResult := &TrieStoriesCache{trie: tr, logger: lgr}
+	actualResult := NewTrieStoriesCache(tr, cfg, lgr)
+	expectedResult := &TrieStoriesCache{trie: tr, config: cfg, logger: lgr}
 
 	assert.Equal(t, expectedResult, actualResult)
 }
 
 func TestStoriesCacheAddStory(t *testing.T) {
+	cfg := config.LoadConfigs().GetBlogConfig()
+
 	testCases := []struct {
 		name          string
 		actualResult  func() []error
@@ -31,7 +35,7 @@ func TestStoriesCacheAddStory(t *testing.T) {
 				tr := &mockTrie{}
 				tr.On("insert", "title", "some-id").Return([]error{})
 				tr.On("insert", "test body", "some-id").Return([]error{})
-				tc := NewTrieStoriesCache(tr, zap.NewExample())
+				tc := NewTrieStoriesCache(tr, cfg, zap.NewExample())
 
 				st, err := domain.NewVanillaStory("title", "test body")
 				require.NoError(t, err)
@@ -47,7 +51,7 @@ func TestStoriesCacheAddStory(t *testing.T) {
 				tr := &mockTrie{}
 				tr.On("insert", "title @", "some-id").Return([]error{errors.New("@ is not a valid character")})
 				tr.On("insert", "test body", "some-id").Return([]error{})
-				tc := NewTrieStoriesCache(tr, zap.NewExample())
+				tc := NewTrieStoriesCache(tr, cfg, zap.NewExample())
 
 				st, err := domain.NewVanillaStory("title @", "test body")
 				require.NoError(t, err)
@@ -63,7 +67,7 @@ func TestStoriesCacheAddStory(t *testing.T) {
 				tr := &mockTrie{}
 				tr.On("insert", "title", "some-id").Return([]error{})
 				tr.On("insert", "test @ some value", "some-id").Return([]error{errors.New("@ is not a valid character")})
-				tc := NewTrieStoriesCache(tr, zap.NewExample())
+				tc := NewTrieStoriesCache(tr, cfg, zap.NewExample())
 
 				st, err := domain.NewVanillaStory("title", "test @ some value")
 				require.NoError(t, err)
@@ -83,6 +87,8 @@ func TestStoriesCacheAddStory(t *testing.T) {
 }
 
 func TestStoriesCacheGetStoryIDs(t *testing.T) {
+	cfg := config.LoadConfigs().GetBlogConfig()
+
 	testCases := []struct {
 		name           string
 		actualResult   func() ([]string, []error)
@@ -94,7 +100,7 @@ func TestStoriesCacheGetStoryIDs(t *testing.T) {
 			actualResult: func() ([]string, []error) {
 				tr := &mockTrie{}
 				tr.On("getIDs", "test").Return(map[string]bool{"36982b87-be33-4683-aaaa-e69282a03c83": true}, []error{})
-				tc := NewTrieStoriesCache(tr, zap.NewExample())
+				tc := NewTrieStoriesCache(tr, cfg, zap.NewExample())
 
 				return tc.GetStoryIDs("test")
 			},
@@ -106,7 +112,7 @@ func TestStoriesCacheGetStoryIDs(t *testing.T) {
 			actualResult: func() ([]string, []error) {
 				tr := &mockTrie{}
 				tr.On("getIDs", "search this @").Return(map[string]bool{"36982b87-be33-4683-aaaa-e69282a03c83": true}, []error{errors.New("@ is not a valid character")})
-				tc := NewTrieStoriesCache(tr, zap.NewExample())
+				tc := NewTrieStoriesCache(tr, cfg, zap.NewExample())
 
 				return tc.GetStoryIDs("search this @")
 			},

@@ -1,18 +1,21 @@
 package store
 
 import (
+	"github.com/nsnikhil/stories/cmd/config"
 	"github.com/nsnikhil/stories/pkg/blog/domain"
 	"go.uber.org/zap"
 )
 
 type TrieStoriesCache struct {
 	trie   Trie
+	config config.BlogConfig
 	logger *zap.Logger
 }
 
-func NewTrieStoriesCache(trie Trie, logger *zap.Logger) StoriesCache {
+func NewTrieStoriesCache(trie Trie, config config.BlogConfig, logger *zap.Logger) StoriesCache {
 	return &TrieStoriesCache{
 		trie:   trie,
+		config: config,
 		logger: logger,
 	}
 }
@@ -20,18 +23,24 @@ func NewTrieStoriesCache(trie Trie, logger *zap.Logger) StoriesCache {
 func (tc *TrieStoriesCache) AddStory(story *domain.Story) []error {
 	res := make([]error, 0)
 
-	addErr := tc.trie.insert(story.GetTitle(), story.GetID())
-	for _, ar := range addErr {
-		tc.logger.Debug(ar.Error(), zap.String("method", "AddStory"), zap.String("call", "insertTitle"))
-		res = append(res, ar)
+	if tc.config.CacheTitle() {
+		res = append(res, addToCache(story.GetTitle(), story.GetID(), "insertTitle", tc.logger, tc.trie)...)
 	}
 
-	addErr = tc.trie.insert(story.GetBody(), story.GetID())
-	for _, ar := range addErr {
-		tc.logger.Debug(ar.Error(), zap.String("method", "AddStory"), zap.String("call", "insertBody"))
-		res = append(res, ar)
+	if tc.config.CacheBody() {
+		res = append(res, addToCache(story.GetBody(), story.GetID(), "insertBody", tc.logger, tc.trie)...)
 	}
 
+	return res
+}
+
+func addToCache(words, id, call string, lgr *zap.Logger, t Trie) []error {
+	res := make([]error, 0)
+	addErr := t.insert(words, id)
+	for _, ar := range addErr {
+		lgr.Debug(ar.Error(), zap.String("method", "AddStory"), zap.String("call", call))
+		res = append(res, ar)
+	}
 	return res
 }
 

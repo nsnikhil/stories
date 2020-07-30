@@ -15,5 +15,4 @@ require (
 	google.golang.org/grpc v1.30.0
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/alexcesaro/statsd.v2 v2.0.0
-	gotest.tools/v3 v3.0.2
 )

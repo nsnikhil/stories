@@ -2,7 +2,7 @@ package store
 
 import (
 	"fmt"
-	"strings"
+	"regexp"
 )
 
 const (
@@ -14,10 +14,6 @@ const (
 	smallA                = 'a'
 	invalidIndex          = -1
 )
-
-var punctuations = map[int32]bool{
-	33: true, 44: true, 46: true, 58: true, 59: true, 63: true,
-}
 
 type Trie interface {
 	insert(s, id string) []error
@@ -54,12 +50,38 @@ type characterTrie struct {
 	root *trieNode
 }
 
+func removeNonCharacter(words []string) []string {
+	var result []string
+	for _, word := range words {
+		if len(word) == 0 {
+			continue
+		}
+
+		//ignore word if it contains something other than characters
+		if ok, err := regexp.MatchString("[^a-zA-Z]+", word); ok || err != nil {
+			continue
+		}
+
+		result = append(result, word)
+	}
+	return result
+}
+
+func splitQuery(query string) []string {
+	//split by punctuations or new line
+	return removeNonCharacter(regexp.MustCompile("[.,!?:;\\s]").Split(query, -1))
+}
+
 func (ct *characterTrie) insert(s, id string) []error {
-	words := strings.Split(s, " ")
+	words := splitQuery(s)
 
 	resErr := make([]error, 0)
 
 	for _, word := range words {
+		if len(word) == 0 {
+			continue
+		}
+
 		if err := insert(ct, word, id); err != nil {
 			resErr = append(resErr, err)
 		}
@@ -69,12 +91,16 @@ func (ct *characterTrie) insert(s, id string) []error {
 }
 
 func (ct *characterTrie) getIDs(query string) (map[string]bool, []error) {
-	words := strings.Split(query, " ")
+	words := splitQuery(query)
 
 	res := make(map[string]bool)
 	resErr := make([]error, 0)
 
 	for _, word := range words {
+		if len(word) == 0 {
+			continue
+		}
+
 		if err := search(ct, word, res); err != nil {
 			resErr = append(resErr, err)
 		}
@@ -88,10 +114,6 @@ func insert(ct *characterTrie, word, id string) error {
 	curr := ct.root
 
 	for _, char := range word {
-		if punctuations[char] {
-			continue
-		}
-
 		idx, err := index(char)
 		if err != nil {
 			return err

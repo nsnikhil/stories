@@ -5,7 +5,7 @@
 #### TODO
 - Add new relic transaction to database.
 - Complete health server check and watch.
-- NewVanillaStory should not return error.
+- Add more scenarios to integration test.
 
 #### setup
 ```

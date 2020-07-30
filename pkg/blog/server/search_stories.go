@@ -7,7 +7,7 @@ import (
 )
 
 func (ss *storiesServer) SearchStories(ctx context.Context, req *proto.SearchStoriesRequest) (*proto.SearchStoriesResponse, error) {
-	stories, err := ss.deps.svc.GetStoriesService().SearchStories(req.Query)
+	stories, err := ss.deps.svc.GetStoriesService().SearchStories(req.GetQuery())
 	if err != nil {
 		return nil, logAndGetError(err, "SearchStories", "SearchStories", ss.deps.logger)
 	}

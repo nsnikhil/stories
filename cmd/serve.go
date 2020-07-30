@@ -8,5 +8,5 @@ import (
 func startServer() {
 	cfg := config.LoadConfigs()
 	initReporters(cfg)
-	server.StartServer(cfg, logger, nrApp, sc)
+	server.NewAppServer(cfg, logger, nrApp, sc).Start()
 }
