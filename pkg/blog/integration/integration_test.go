@@ -21,7 +21,7 @@ import (
 const address = "127.0.0.1:8080"
 
 func TestStories(t *testing.T) {
-	go startServer(t)
+	go startServer()
 	waitForServer()
 	defer cleanUp(t)
 
@@ -288,15 +288,13 @@ func cleanUp(t *testing.T) {
 	require.NoError(t, db.Delete(&domain.Story{}).Error)
 }
 
-func startServer(t *testing.T) {
+func startServer() {
 	cfg := config.LoadConfigs()
 	lgr := zap.NewNop()
 
-	nrApp, err := newrelic.NewApplication(newrelic.Config{})
-	require.NoError(t, err)
+	nrApp, _ := newrelic.NewApplication(newrelic.Config{})
 
-	sc, err := statsd.New(statsd.Address(cfg.GetStatsDConfig().Address()), statsd.Prefix(cfg.GetStatsDConfig().Namespace()))
-	require.NoError(t, err)
+	sc, _ := statsd.New(statsd.Address(cfg.GetStatsDConfig().Address()), statsd.Prefix(cfg.GetStatsDConfig().Namespace()))
 
 	server.NewAppServer(cfg, lgr, nrApp, sc).Start()
 }
