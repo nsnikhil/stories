@@ -11,4 +11,4 @@ create table if not exists stories (
     updatedAt timestamp without time zone default (now() at time zone 'utc'),
     CHECK (title <> ''),
     CHECK (body <> '')
-)
+);

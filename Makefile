@@ -1,5 +1,5 @@
 APP=stories
-APP_VERSION:=0.1
+APP_VERSION:=0.2
 APP_COMMIT:=$(shell git rev-parse HEAD)
 APP_EXECUTABLE="./out/$(APP)"
 ALL_PACKAGES=$(shell go list ./... | grep -v "vendor")
@@ -7,8 +7,8 @@ ALL_PACKAGES=$(shell go list ./... | grep -v "vendor")
 setup: copy-config init-db migrate test
 
 init-db:
-	psql -c 'create user storiesuser superuser' -U postgres
-	psql -c 'create database storiesdb owner=storiesuser' -U postgres
+	psql -c "create user storiesuser superuser password 'storeisdbpassword';" -U postgres
+	psql -c "create database storiesdb owner=storiesuser" -U postgres
 
 deps:
 	go mod download
@@ -29,7 +29,8 @@ compile:
 build: deps compile
 
 docker-build:
-	docker build -t nsnikhil/$(APP):$(APP_VERSION) .
+	docker build --build-arg SSH_PRIVATE_KEY="$$(cat ~/.ssh/travis_ci_key)" -t nsnikhil/$(APP):$(APP_VERSION) .
+	docker rmi -f $$(docker images -f "dangling=true" -q)
 
 docker-push: docker-build
 	docker push nsnikhil/$(APP):$(APP_VERSION)

@@ -27,7 +27,7 @@ func newDatabaseConfig() DatabaseConfig {
 }
 
 func (dc DatabaseConfig) Source() string {
-	return fmt.Sprintf("dbname=%s user=%s password=%s host=%s port=%d sslmode=disable", dc.name, dc.username, dc.password, dc.host, dc.port)
+	return fmt.Sprintf("postgres://%v:%v@%v:%v/%v?sslmode=disable", dc.username, dc.password, dc.host, dc.port, dc.name)
 }
 
 func (dc DatabaseConfig) GetIdleConnections() int {

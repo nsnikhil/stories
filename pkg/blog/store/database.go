@@ -33,11 +33,6 @@ func (dbh *DefaultDBHandler) GetDB() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	if err := db.DB().Ping(); err != nil {
-		dbh.logger.Error(err.Error(), zap.String("method", "GetDB"), zap.String("call", "DB.Ping"))
-		return nil, err
-	}
-
 	db.DB().SetMaxOpenConns(dbh.config.GetMaxOpenConnections())
 	db.DB().SetMaxIdleConns(dbh.config.GetIdleConnections())
 	db.DB().SetConnMaxLifetime(time.Minute * time.Duration(dbh.config.GetConnectionMaxLifetime()))
