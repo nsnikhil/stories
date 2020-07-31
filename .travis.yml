@@ -23,5 +23,5 @@ jobs:
       if: tag IS present AND tag =~ ^\d+\.\d+(\.\d+)?$
       script:
         - echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
-        - make docker-push
+        - make ci-docker-push
 

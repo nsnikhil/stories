@@ -32,7 +32,14 @@ docker-build:
 	docker build --build-arg SSH_PRIVATE_KEY="$$(cat ~/.ssh/travis_ci_key)" -t nsnikhil/$(APP):$(APP_VERSION) .
 	docker rmi -f $$(docker images -f "dangling=true" -q)
 
+ci-docker-build:
+	docker build --build-arg SSH_PRIVATE_KEY="$$(cat ~/.ssh/id_rsa)" -t nsnikhil/$(APP):$(APP_VERSION) .
+	docker rmi -f $$(docker images -f "dangling=true" -q)
+
 docker-push: docker-build
+	docker push nsnikhil/$(APP):$(APP_VERSION)
+
+ci-docker-push: ci-docker-build
 	docker push nsnikhil/$(APP):$(APP_VERSION)
 
 serve: build
