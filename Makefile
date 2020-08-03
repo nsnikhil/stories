@@ -25,7 +25,7 @@ vet:
 	go vet $(ALL_PACKAGES)
 
 lint:
-	golint ./...
+	golint $(ALL_PACKAGES)
 
 compile:
 	mkdir -p out/
