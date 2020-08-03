@@ -22,6 +22,9 @@ fmt:
 vet:
 	go vet $(ALL_PACKAGES)
 
+lint:
+	golint ./...
+
 compile:
 	mkdir -p out/
 	go build -ldflags "-X main.version=$(APP_VERSION) -X main.commit=$(APP_COMMIT)" -o $(APP_EXECUTABLE) cmd/*.go
