@@ -68,7 +68,7 @@ func TestCreateNewStory(t *testing.T) {
 				return NewStory(id, "title", "this is a test body", 0, 0, 0, createdAt, updatedAt)
 			},
 			expectedResult: &Story{
-				Id:        id,
+				ID:        id,
 				Title:     "title",
 				Body:      "this is a test body",
 				ViewCount: 0,

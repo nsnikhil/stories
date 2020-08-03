@@ -39,7 +39,7 @@ func TestStoriesCacheAddStory(t *testing.T) {
 
 				st, err := domain.NewVanillaStory("title", "test body")
 				require.NoError(t, err)
-				st.Id = "some-id"
+				st.ID = "some-id"
 
 				return tc.AddStory(st)
 			},
@@ -55,7 +55,7 @@ func TestStoriesCacheAddStory(t *testing.T) {
 
 				st, err := domain.NewVanillaStory("title @", "test body")
 				require.NoError(t, err)
-				st.Id = "some-id"
+				st.ID = "some-id"
 
 				return tc.AddStory(st)
 			},
@@ -71,7 +71,7 @@ func TestStoriesCacheAddStory(t *testing.T) {
 
 				st, err := domain.NewVanillaStory("title", "test @ some value")
 				require.NoError(t, err)
-				st.Id = "some-id"
+				st.ID = "some-id"
 
 				return tc.AddStory(st)
 			},

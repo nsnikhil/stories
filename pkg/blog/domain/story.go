@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 	"time"
@@ -10,7 +9,7 @@ import (
 const tableName = "stories"
 
 type Story struct {
-	Id        string
+	ID        string
 	Title     string
 	Body      string
 	ViewCount int64     `gorm:"column:viewcount"`
@@ -21,7 +20,7 @@ type Story struct {
 }
 
 func (s *Story) GetID() string {
-	return s.Id
+	return s.ID
 }
 
 func (s *Story) GetTitle() string {
@@ -158,7 +157,7 @@ func (b *storyBuilder) setUpdatedAt(updatedAt time.Time) *storyBuilder {
 
 func (b *storyBuilder) build() *Story {
 	return &Story{
-		Id:        b.id,
+		ID:        b.id,
 		Title:     b.title,
 		Body:      b.body,
 		ViewCount: b.viewCount,
@@ -189,7 +188,7 @@ func isValidUUID(uuid string) bool {
 func validateStrings(pairs ...*pair) error {
 	for _, p := range pairs {
 		if !validString(p.value) {
-			return errors.New(fmt.Sprintf("%s cannot be empty", p.name))
+			return fmt.Errorf("%s cannot be empty", p.name)
 		}
 	}
 

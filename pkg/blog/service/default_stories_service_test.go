@@ -88,7 +88,7 @@ func TestStoryServiceGetStory(t *testing.T) {
 			actualResult: func() (*domain.Story, error) {
 				str, err := domain.NewVanillaStory("title", "test body")
 				require.NoError(t, err)
-				str.Id = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
+				str.ID = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
 
 				mst := &store.MockStoriesStore{}
 				mst.On("GetStories", []string{"2eaa0697-2572-47f9-bcff-0bdf0c7c6432"}).Return([]domain.Story{*str}, nil)
@@ -103,7 +103,7 @@ func TestStoryServiceGetStory(t *testing.T) {
 			expectedResult: func() *domain.Story {
 				str, err := domain.NewVanillaStory("title", "test body")
 				require.NoError(t, err)
-				str.Id = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
+				str.ID = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
 
 				return str
 			},
@@ -168,7 +168,7 @@ func TestStoryServiceUpdateStory(t *testing.T) {
 			actualResult: func() (int64, error) {
 				str, err := domain.NewVanillaStory("title", "test body")
 				require.NoError(t, err)
-				str.Id = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
+				str.ID = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
 
 				mst := &store.MockStoriesStore{}
 				mst.On("UpdateStory", str).Return(int64(1), nil)
@@ -187,7 +187,7 @@ func TestStoryServiceUpdateStory(t *testing.T) {
 			actualResult: func() (int64, error) {
 				str, err := domain.NewVanillaStory("title", "test body")
 				require.NoError(t, err)
-				str.Id = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
+				str.ID = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
 
 				mst := &store.MockStoriesStore{}
 				mst.On("UpdateStory", str).Return(int64(0), errors.New("failed to update story"))
@@ -200,7 +200,7 @@ func TestStoryServiceUpdateStory(t *testing.T) {
 				return sv.UpdateStory(str)
 			},
 			expectedResult: 0,
-			expectedError: errors.New("failed to update story"),
+			expectedError:  errors.New("failed to update story"),
 		},
 	}
 
@@ -226,7 +226,7 @@ func TestStoryServiceSearchStories(t *testing.T) {
 			actualResult: func() ([]domain.Story, error) {
 				str, err := domain.NewVanillaStory("title", "test body")
 				require.NoError(t, err)
-				str.Id = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
+				str.ID = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
 
 				mst := &store.MockStoriesStore{}
 				mst.On("GetStories", []string{"2eaa0697-2572-47f9-bcff-0bdf0c7c6432"}).Return([]domain.Story{*str}, nil)
@@ -244,7 +244,7 @@ func TestStoryServiceSearchStories(t *testing.T) {
 			expectedResult: func() []domain.Story {
 				str, err := domain.NewVanillaStory("title", "test body")
 				require.NoError(t, err)
-				str.Id = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
+				str.ID = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
 
 				return []domain.Story{*str}
 			},
@@ -294,7 +294,7 @@ func TestStoryServiceGetMostViewsStories(t *testing.T) {
 			actualResult: func() ([]domain.Story, error) {
 				str, err := domain.NewVanillaStory("title", "test body")
 				require.NoError(t, err)
-				str.Id = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
+				str.ID = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
 
 				mst := &store.MockStoriesStore{}
 				mst.On("GetMostViewsStories", 0, 1).Return([]domain.Story{*str}, nil)
@@ -309,7 +309,7 @@ func TestStoryServiceGetMostViewsStories(t *testing.T) {
 			expectedResult: func() []domain.Story {
 				str, err := domain.NewVanillaStory("title", "test body")
 				require.NoError(t, err)
-				str.Id = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
+				str.ID = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
 
 				return []domain.Story{*str}
 			},
@@ -356,7 +356,7 @@ func TestStoryServiceGetTopRatedStories(t *testing.T) {
 			actualResult: func() ([]domain.Story, error) {
 				str, err := domain.NewVanillaStory("title", "test body")
 				require.NoError(t, err)
-				str.Id = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
+				str.ID = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
 
 				mst := &store.MockStoriesStore{}
 				mst.On("GetTopRatedStories", 0, 1).Return([]domain.Story{*str}, nil)
@@ -371,7 +371,7 @@ func TestStoryServiceGetTopRatedStories(t *testing.T) {
 			expectedResult: func() []domain.Story {
 				str, err := domain.NewVanillaStory("title", "test body")
 				require.NoError(t, err)
-				str.Id = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
+				str.ID = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
 
 				return []domain.Story{*str}
 			},

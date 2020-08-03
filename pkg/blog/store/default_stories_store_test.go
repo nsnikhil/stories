@@ -112,7 +112,6 @@ func TestStoriesStoreAddStory(t *testing.T) {
 				assert.Equal(t, testCase.expectedError.Error(), err.Error())
 			}
 
-
 			for _, r := range res {
 				assert.True(t, isValidUUID(r))
 			}
@@ -306,7 +305,7 @@ func TestStoriesStoreUpdateStory(t *testing.T) {
 				story, err := domain.NewVanillaStory("one", "this is a story one")
 				require.NoError(t, err)
 
-				story.Id = "ced5aa3b-b39a-4da4-b8bf-d03e3c8daa7a"
+				story.ID = "ced5aa3b-b39a-4da4-b8bf-d03e3c8daa7a"
 
 				c, err := store.UpdateStory(story)
 

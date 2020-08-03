@@ -16,6 +16,8 @@ deps:
 tidy:
 	go mod tidy
 
+check: fmt vet lint
+
 fmt:
 	go fmt $(ALL_PACKAGES)
 

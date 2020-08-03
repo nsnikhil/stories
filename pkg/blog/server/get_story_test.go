@@ -33,7 +33,7 @@ func TestStoriesServerGetStory(t *testing.T) {
 
 				st, err := domain.NewStory("adbca278-7e5c-4831-bf90-15fadfda0dd1", "title", "test body", 25, 10, 2, createdAt, updatedAt)
 				require.NoError(t, err)
-				st.Id = id
+				st.ID = id
 
 				ms := &service.MockStoriesService{}
 				ms.On("GetStory", id).Return(st, nil)
@@ -50,12 +50,12 @@ func TestStoriesServerGetStory(t *testing.T) {
 			expectedResult: func() *proto.GetStoryResponse {
 				return &proto.GetStoryResponse{
 					Story: &proto.Story{
-						Id:        "adbca278-7e5c-4831-bf90-15fadfda0dd1",
-						Title:     "title",
-						Body:      "test body",
-						Views:     25,
-						UpVotes:   10,
-						DownVotes: 2,
+						Id:            "adbca278-7e5c-4831-bf90-15fadfda0dd1",
+						Title:         "title",
+						Body:          "test body",
+						Views:         25,
+						UpVotes:       10,
+						DownVotes:     2,
 						CreatedAtUnix: createdAt.Unix(),
 						UpdatedAtUnix: updatedAt.Unix(),
 					},
