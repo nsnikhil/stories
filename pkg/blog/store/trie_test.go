@@ -113,7 +113,6 @@ func TestTrieGetIds(t *testing.T) {
 				ct.insert(sentence, "06bbae40-7048-47d2-a197-39cbf9e704e6")
 
 				return ct.getIDs("things with")
-
 			},
 			expectedResult: func() map[string]bool {
 				return map[string]bool{"06bbae40-7048-47d2-a197-39cbf9e704e6": true, "36982b87-be33-4683-aaaa-e69282a03c83": true}
@@ -131,7 +130,6 @@ func TestTrieGetIds(t *testing.T) {
 				ct.insert(sentence, "06bbae40-7048-47d2-a197-39cbf9e704e6")
 
 				return ct.getIDs("BIG different")
-
 			},
 			expectedResult: func() map[string]bool {
 				return map[string]bool{"06bbae40-7048-47d2-a197-39cbf9e704e6": true, "36982b87-be33-4683-aaaa-e69282a03c83": true}
@@ -162,7 +160,6 @@ func TestTrieGetIds(t *testing.T) {
 				ct.insert(sentence, "2eaa0697-2572-47f9-bcff-0bdf0c7c6432")
 
 				return ct.getIDs("this another letter hence ends okay")
-
 			},
 			expectedResult: func() map[string]bool {
 				return map[string]bool{
@@ -185,7 +182,6 @@ func TestTrieGetIds(t *testing.T) {
 				ct.insert(sentence, "36982b87-be33-4683-aaaa-e69282a03c83")
 
 				return ct.getIDs("analyze series GO IMDb")
-
 			},
 			expectedResult: func() map[string]bool {
 				return map[string]bool{
@@ -202,7 +198,6 @@ func TestTrieGetIds(t *testing.T) {
 				ct.insert(sentence, "36982b87-be33-4683-aaaa-e69282a03c83")
 
 				return ct.getIDs("BIG @")
-
 			},
 			expectedResult: func() map[string]bool {
 				return map[string]bool{"36982b87-be33-4683-aaaa-e69282a03c83": true}
@@ -217,7 +212,6 @@ func TestTrieGetIds(t *testing.T) {
 				ct.insert(sentence, "36982b87-be33-4683-aaaa-e69282a03c83")
 
 				return ct.getIDs("these i")
-
 			},
 			expectedResult: func() map[string]bool {
 				return map[string]bool{}

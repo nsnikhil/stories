@@ -52,13 +52,16 @@ type characterTrie struct {
 
 func removeNonCharacter(words []string) []string {
 	var result []string
+
+	reg := regexp.MustCompile(`[^a-zA-Z]+`)
+
 	for _, word := range words {
 		if len(word) == 0 {
 			continue
 		}
 
 		//ignore word if it contains something other than characters
-		if ok, err := regexp.MatchString("[^a-zA-Z]+", word); ok || err != nil {
+		if ok := reg.MatchString(word); ok {
 			continue
 		}
 
@@ -69,7 +72,7 @@ func removeNonCharacter(words []string) []string {
 
 func splitQuery(query string) []string {
 	//split by punctuations or new line
-	return removeNonCharacter(regexp.MustCompile("[.,!?:;\\s]").Split(query, -1))
+	return removeNonCharacter(regexp.MustCompile(`[.,!?:;\s]`).Split(query, -1))
 }
 
 func (ct *characterTrie) insert(s, id string) []error {
@@ -107,7 +110,6 @@ func (ct *characterTrie) getIDs(query string) (map[string]bool, []error) {
 	}
 
 	return res, resErr
-
 }
 
 func insert(ct *characterTrie, word, id string) error {

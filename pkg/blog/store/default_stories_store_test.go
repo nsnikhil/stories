@@ -24,7 +24,6 @@ func TestCreateNewDBStore(t *testing.T) {
 }
 
 func TestStoriesStoreAddStory(t *testing.T) {
-
 	db := getDB(t)
 	store := NewDefaultStoriesStore(db, zap.NewExample())
 
@@ -173,7 +172,7 @@ func TestGetStories(t *testing.T) {
 
 				story, err = domain.NewVanillaStory("four", "this is a story four")
 				require.NoError(t, err)
-				err = store.AddStory(story)
+				require.NoError(t, store.AddStory(story))
 				ids = append(ids, story.GetID())
 
 				stories, err := store.GetStories(ids...)
@@ -245,7 +244,6 @@ func TestGetStories(t *testing.T) {
 				assert.Equal(t, expRes[i].GetUpVotes(), res[i].GetUpVotes())
 				assert.Equal(t, expRes[i].GetDownVotes(), res[i].GetDownVotes())
 			}
-
 		})
 	}
 }
@@ -264,7 +262,6 @@ func TestStoriesStoreUpdateStory(t *testing.T) {
 		{
 			name: "test update story",
 			actualResult: func() (*domain.Story, int64, error) {
-
 				story, err := domain.NewVanillaStory("one", "this is a story one")
 				require.NoError(t, err)
 				require.NoError(t, store.AddStory(story))
@@ -333,7 +330,6 @@ func TestStoriesStoreUpdateStory(t *testing.T) {
 				assert.Equal(t, expRes.GetUpVotes(), res.GetUpVotes())
 				assert.Equal(t, expRes.GetDownVotes(), res.GetDownVotes())
 			}
-
 		})
 	}
 }
@@ -400,9 +396,11 @@ func TestStoriesStoreGetMostViewsStories(t *testing.T) {
 				res := make([]domain.Story, 0)
 
 				stories, err := store.GetMostViewsStories(0, 2)
+				require.NoError(t, err)
 				res = append(res, stories...)
 
 				stories, err = store.GetMostViewsStories(2, 2)
+				require.NoError(t, err)
 				res = append(res, stories...)
 
 				truncate(db)
@@ -457,10 +455,8 @@ func TestStoriesStoreGetMostViewsStories(t *testing.T) {
 				assert.Equal(t, expRes[i].GetUpVotes(), res[i].GetUpVotes())
 				assert.Equal(t, expRes[i].GetDownVotes(), res[i].GetDownVotes())
 			}
-
 		})
 	}
-
 }
 
 func TestStoriesStoreGetTopRatedStories(t *testing.T) {
@@ -524,9 +520,11 @@ func TestStoriesStoreGetTopRatedStories(t *testing.T) {
 				res := make([]domain.Story, 0)
 
 				stories, err := store.GetTopRatedStories(0, 2)
+				require.NoError(t, err)
 				res = append(res, stories...)
 
 				stories, err = store.GetTopRatedStories(2, 2)
+				require.NoError(t, err)
 				res = append(res, stories...)
 
 				truncate(db)
@@ -580,7 +578,6 @@ func TestStoriesStoreGetTopRatedStories(t *testing.T) {
 				assert.Equal(t, expRes[i].GetUpVotes(), res[i].GetUpVotes())
 				assert.Equal(t, expRes[i].GetDownVotes(), res[i].GetDownVotes())
 			}
-
 		})
 	}
 }

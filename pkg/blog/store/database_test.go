@@ -26,5 +26,4 @@ func TestDBHandlerGetDB(t *testing.T) {
 	db, err := handler.GetDB()
 	assert.Nil(t, err)
 	assert.NotNil(t, db)
-
 }

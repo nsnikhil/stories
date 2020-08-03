@@ -17,7 +17,6 @@ func (hs *healthServer) Check(context.Context, *proto.HealthCheckRequest) (*prot
 	return &proto.HealthCheckResponse{
 		Status: proto.HealthCheckResponse_SERVING,
 	}, nil
-
 }
 
 func (hs *healthServer) Watch(context.Context, *proto.HealthCheckRequest) (*proto.HealthCheckResponse, error) {

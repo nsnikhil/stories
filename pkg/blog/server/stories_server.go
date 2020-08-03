@@ -5,8 +5,8 @@ import (
 )
 
 type storiesServer struct {
-	deps *serverDeps
 	proto.UnimplementedStoriesApiServer
+	deps *serverDeps
 }
 
 func newStoriesServer(deps *serverDeps) *storiesServer {

@@ -28,7 +28,6 @@ func (dss *DefaultStoriesService) AddStory(story *domain.Story) error {
 	go dss.store.GetStoriesCache().AddStory(story)
 
 	return nil
-
 }
 
 func (dss *DefaultStoriesService) GetStory(storyID string) (*domain.Story, error) {

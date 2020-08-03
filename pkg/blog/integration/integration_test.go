@@ -97,7 +97,6 @@ func testScenarioOne(t *testing.T, cl proto.StoriesApiClient) {
 	time.Sleep(time.Second)
 
 	for _, queries := range queriesMatrix {
-
 		sr := searchRequests(queries)
 
 		for _, r := range sr {
@@ -111,7 +110,6 @@ func testScenarioOne(t *testing.T, cl proto.StoriesApiClient) {
 				assert.NotNil(t, story.GetUpdatedAtUnix())
 				assert.NotNil(t, story.GetTitle())
 			}
-
 		}
 	}
 
@@ -226,7 +224,6 @@ func updateRequests(stories []*proto.Story) []*proto.UpdateStoryRequest {
 
 	var updateRequests []*proto.UpdateStoryRequest
 	for i, up := range updaters {
-
 		for l := 0; l < up.views; l++ {
 			stories[i].Views++
 		}
