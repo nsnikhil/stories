@@ -20,22 +20,34 @@ const (
 	databaseName  = "postgres"
 )
 
-func Migrate() error {
+func runMigrations() {
 	newMigrate, err := newMigrate()
 	if err != nil {
 		fmt.Println(err)
-		return err
+		return
 	}
-	return newMigrate.Up()
+
+	if err := newMigrate.Up(); err != nil {
+		if err == migrate.ErrNoChange {
+			return
+		}
+		fmt.Println(err)
+		return
+	}
 }
 
-func Rollback() error {
+func rollBackMigrations() {
 	newMigrate, err := newMigrate()
 	if err != nil {
 		fmt.Println(err)
-		return err
+		return
 	}
-	return newMigrate.Steps(rollBackStep)
+
+	if err := newMigrate.Steps(rollBackStep); err != nil {
+		if err == migrate.ErrNoChange {
+			return
+		}
+	}
 }
 
 func newMigrate() (*migrate.Migrate, error) {
