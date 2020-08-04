@@ -58,6 +58,16 @@ func (dss *DefaultStoriesStore) UpdateStory(story *domain.Story) (int64, error) 
 	return db.RowsAffected, nil
 }
 
+func (dss *DefaultStoriesStore) DeleteStory(storyID string) (int64, error) {
+	db := dss.db.Where("id = ?", storyID).Delete(domain.Story{})
+	if db.Error != nil {
+		dss.logger.Error(db.Error.Error(), zap.String("method", "DeleteStory"), zap.String("call", "Delete"))
+		return 0, db.Error
+	}
+
+	return db.RowsAffected, nil
+}
+
 func (dss *DefaultStoriesStore) GetMostViewsStories(offset, limit int) ([]domain.Story, error) {
 	return getRecords(offset, limit, "viewcount desc", "GetMostViewsStories", dss.db, dss.logger)
 }

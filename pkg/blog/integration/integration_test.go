@@ -6,9 +6,7 @@ import (
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/nsnikhil/stories-proto/proto"
 	"github.com/nsnikhil/stories/cmd/config"
-	"github.com/nsnikhil/stories/pkg/blog/domain"
 	"github.com/nsnikhil/stories/pkg/blog/server"
-	"github.com/nsnikhil/stories/pkg/blog/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -23,7 +21,6 @@ const address = "127.0.0.1:8080"
 func TestStories(t *testing.T) {
 	go startServer()
 	waitForServer()
-	defer cleanUp(t)
 
 	cl := getClient(t)
 
@@ -39,11 +36,13 @@ func testPingRequest(t *testing.T, cl proto.StoriesApiClient) {
 }
 
 func testScenarioOne(t *testing.T, cl proto.StoriesApiClient) {
+	ctx := context.Background()
+
 	ar := addRequests()
 	sz := len(ar)
 
 	for i := 0; i < sz; i++ {
-		resp, err := cl.AddStory(context.Background(), ar[i])
+		resp, err := cl.AddStory(ctx, ar[i])
 		require.NoError(t, err)
 		assert.True(t, resp.Success)
 	}
@@ -52,7 +51,7 @@ func testScenarioOne(t *testing.T, cl proto.StoriesApiClient) {
 
 	protoStories := make([]*proto.Story, sz)
 	for i, m := range mv {
-		resp, err := cl.GetMostViewedStories(context.Background(), m)
+		resp, err := cl.GetMostViewedStories(ctx, m)
 		require.NoError(t, err)
 
 		stories := resp.Stories
@@ -64,7 +63,7 @@ func testScenarioOne(t *testing.T, cl proto.StoriesApiClient) {
 
 	tr := topRatedRequests(sz)
 	for i, te := range tr {
-		resp, err := cl.GetTopRatedStories(context.Background(), te)
+		resp, err := cl.GetTopRatedStories(ctx, te)
 		require.NoError(t, err)
 
 		stories := resp.Stories
@@ -76,7 +75,7 @@ func testScenarioOne(t *testing.T, cl proto.StoriesApiClient) {
 	gr := getStoryRequests(protoStories)
 
 	for _, g := range gr {
-		resp, err := cl.GetStory(context.Background(), g)
+		resp, err := cl.GetStory(ctx, g)
 		require.NoError(t, err)
 
 		str := resp.GetStory()
@@ -100,7 +99,7 @@ func testScenarioOne(t *testing.T, cl proto.StoriesApiClient) {
 		sr := searchRequests(queries)
 
 		for _, r := range sr {
-			resp, err := cl.SearchStories(context.Background(), r)
+			resp, err := cl.SearchStories(ctx, r)
 			require.NoError(t, err)
 
 			stories := resp.Stories
@@ -116,7 +115,7 @@ func testScenarioOne(t *testing.T, cl proto.StoriesApiClient) {
 	ur := updateRequests(protoStories)
 
 	for _, r := range ur {
-		resp, err := cl.UpdateStory(context.Background(), r)
+		resp, err := cl.UpdateStory(ctx, r)
 		require.NoError(t, err)
 		require.True(t, resp.Success)
 	}
@@ -124,7 +123,7 @@ func testScenarioOne(t *testing.T, cl proto.StoriesApiClient) {
 	gr = getStoryRequests(protoStories)
 
 	for i, g := range gr {
-		resp, err := cl.GetStory(context.Background(), g)
+		resp, err := cl.GetStory(ctx, g)
 		require.NoError(t, err)
 
 		str := resp.GetStory()
@@ -133,6 +132,14 @@ func testScenarioOne(t *testing.T, cl proto.StoriesApiClient) {
 		assert.Equal(t, int64(i+22*4), str.GetUpVotes())
 		assert.Equal(t, int64(i+11*4), str.GetDownVotes())
 		assert.NotEqual(t, str.GetCreatedAtUnix(), str.GetUpdatedAtUnix())
+	}
+
+	dr := deleteRequests(protoStories)
+
+	for _, r := range dr {
+		resp, err := cl.DeleteStory(ctx, r)
+		require.Nil(t, err)
+		require.True(t, resp.GetSuccess())
 	}
 }
 
@@ -244,6 +251,18 @@ func updateRequests(stories []*proto.Story) []*proto.UpdateStoryRequest {
 	return updateRequests
 }
 
+func deleteRequests(stories []*proto.Story) []*proto.DeleteStoryRequest {
+	var deleteRequests []*proto.DeleteStoryRequest
+
+	for _, story := range stories {
+		deleteRequests = append(deleteRequests, &proto.DeleteStoryRequest{
+			StoryID: story.GetId(),
+		})
+	}
+
+	return deleteRequests
+}
+
 type testData struct {
 	title string
 	body  string
@@ -275,14 +294,6 @@ func getClient(t *testing.T) proto.StoriesApiClient {
 
 func waitForServer() {
 	time.Sleep(time.Second)
-}
-
-func cleanUp(t *testing.T) {
-	cfg := config.LoadConfigs()
-	handler := store.NewDBHandler(cfg.GetDatabaseConfig(), zap.NewNop())
-	db, err := handler.GetDB()
-	require.NoError(t, err)
-	require.NoError(t, db.Delete(&domain.Story{}).Error)
 }
 
 func startServer() {

@@ -24,6 +24,11 @@ func (mock *MockStoriesStore) UpdateStory(story *domain.Story) (int64, error) {
 	return args.Get(0).(int64), args.Error(1)
 }
 
+func (mock *MockStoriesStore) DeleteStory(storyID string) (int64, error) {
+	args := mock.Called(storyID)
+	return args.Get(0).(int64), args.Error(1)
+}
+
 func (mock *MockStoriesStore) GetMostViewsStories(offset, limit int) ([]domain.Story, error) {
 	args := mock.Called(offset, limit)
 	return args.Get(0).([]domain.Story), args.Error(1)

@@ -334,6 +334,56 @@ func TestStoriesStoreUpdateStory(t *testing.T) {
 	}
 }
 
+func TestStoriesStoreDeleteStory(t *testing.T) {
+	db := getDB(t)
+	store := NewDefaultStoriesStore(db, zap.NewExample())
+
+	testCases := []struct {
+		name          string
+		actualResult  func() (int64, error)
+		expectedCount int64
+		expectedError error
+	}{
+		{
+			name: "test delete story",
+			actualResult: func() (int64, error) {
+				story, err := domain.NewVanillaStory("one", "this is a story one")
+				require.NoError(t, err)
+				require.NoError(t, store.AddStory(story))
+
+				c, err := store.DeleteStory(story.GetID())
+
+				truncate(db)
+
+				return c, err
+			},
+			expectedCount: 1,
+		},
+		{
+			name: "test delete story return error when story is not present",
+			actualResult: func() (int64, error) {
+				story, err := domain.NewVanillaStory("one", "this is a story one")
+				require.NoError(t, err)
+				story.ID = "ced5aa3b-b39a-4da4-b8bf-d03e3c8daa7a"
+
+				c, err := store.DeleteStory(story.GetID())
+
+				return c, err
+			},
+			expectedCount: 0,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			c, err := testCase.actualResult()
+
+			assert.Equal(t, testCase.expectedError, err)
+			assert.Equal(t, testCase.expectedCount, c)
+		})
+	}
+}
+
 func TestStoriesStoreGetMostViewsStories(t *testing.T) {
 	db := getDB(t)
 	store := NewDefaultStoriesStore(db, zap.NewExample())

@@ -325,12 +325,8 @@ github.com/nakagami/firebirdsql v0.0.0-20190310045651-3c02a58cfed8/go.mod h1:86w
 github.com/neo4j/neo4j-go-driver v1.8.0/go.mod h1:0A49wIv0oP3uQdnbceK7Kc+snlY5B0F6dmtYArM0ltk=
 github.com/newrelic/go-agent v3.8.0+incompatible h1:IxJKEK7SihVTXTDIpjl2GW2x3kl47yyi7IEq/jpbgME=
 github.com/newrelic/go-agent v3.8.0+incompatible/go.mod h1:a8Fv1b/fYhFSReoTU6HDkTYIMZeSVNffmoS726Y0LzQ=
-github.com/nsnikhil/stories-proto v0.0.0-20200727174248-04030dc9d24c h1:T9+g7S6JAvZQ71OjFTfgr6TGQLzv+e4ay3v49jC2rVs=
-github.com/nsnikhil/stories-proto v0.0.0-20200727174248-04030dc9d24c/go.mod h1:4GIf2F1WBjBmLc0+oqGrPMVOmLXTBzHL0wy0z0HLkIA=
-github.com/nsnikhil/stories-proto v0.0.0-20200729073621-abd43a6a2698 h1:CN87Fcf7Ffao664w1aUIcXlFoH6hB80UrdeXJXYnqOc=
-github.com/nsnikhil/stories-proto v0.0.0-20200729073621-abd43a6a2698/go.mod h1:4GIf2F1WBjBmLc0+oqGrPMVOmLXTBzHL0wy0z0HLkIA=
-github.com/nsnikhil/stories-proto v0.0.0-20200729111336-056a415d19f3 h1:scEkodW8s80swyVFr6JeCqY4wugINUGon36Rex2dfLE=
-github.com/nsnikhil/stories-proto v0.0.0-20200729111336-056a415d19f3/go.mod h1:4GIf2F1WBjBmLc0+oqGrPMVOmLXTBzHL0wy0z0HLkIA=
+github.com/nsnikhil/stories-proto v0.0.0-20200803180826-b39eda26bca0 h1:vmGIa1esEHFQjKOSn4VfjZZSc2IkU1yruvgIRbemqMY=
+github.com/nsnikhil/stories-proto v0.0.0-20200803180826-b39eda26bca0/go.mod h1:4GIf2F1WBjBmLc0+oqGrPMVOmLXTBzHL0wy0z0HLkIA=
 github.com/oklog/ulid v1.3.1/go.mod h1:CirwcVhetQ6Lv90oh/F+FBtV6XMibvdAFo93nm5qn4U=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.12.0/go.mod h1:oUhWkIvk5aDxtKvDDuw8gItl8pKl42LzjC9KZE0HfGg=

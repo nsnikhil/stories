@@ -49,6 +49,10 @@ func (dss *DefaultStoriesService) UpdateStory(story *domain.Story) (int64, error
 	return dss.store.GetStoriesStore().UpdateStory(story)
 }
 
+func (dss *DefaultStoriesService) DeleteStory(storyID string) (int64, error) {
+	return dss.store.GetStoriesStore().DeleteStory(storyID)
+}
+
 func (dss *DefaultStoriesService) SearchStories(query string) ([]domain.Story, error) {
 	ids, errs := dss.store.GetStoriesCache().GetStoryIDs(query)
 	if len(ids) == 0 && len(errs) != 0 {

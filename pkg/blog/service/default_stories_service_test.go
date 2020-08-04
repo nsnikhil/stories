@@ -214,6 +214,64 @@ func TestStoryServiceUpdateStory(t *testing.T) {
 	}
 }
 
+func TestStoryServiceDeleteStory(t *testing.T) {
+	testCases := []struct {
+		name           string
+		actualResult   func() (int64, error)
+		expectedResult int64
+		expectedError  error
+	}{
+		{
+			name: "test delete story success",
+			actualResult: func() (int64, error) {
+				str, err := domain.NewVanillaStory("title", "test body")
+				require.NoError(t, err)
+				str.ID = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
+
+				mst := &store.MockStoriesStore{}
+				mst.On("DeleteStory", str.GetID()).Return(int64(1), nil)
+
+				st := store.NewStore(mst, &store.MockStoriesCache{})
+				lgr := zap.NewExample()
+
+				sv := NewDefaultStoriesService(st, lgr)
+
+				return sv.DeleteStory(str.GetID())
+			},
+			expectedResult: 1,
+		},
+		{
+			name: "test delete story failure",
+			actualResult: func() (int64, error) {
+				str, err := domain.NewVanillaStory("title", "test body")
+				require.NoError(t, err)
+				str.ID = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
+
+				mst := &store.MockStoriesStore{}
+				mst.On("DeleteStory", str.GetID()).Return(int64(0), errors.New("failed to delete story"))
+
+				st := store.NewStore(mst, &store.MockStoriesCache{})
+				lgr := zap.NewExample()
+
+				sv := NewDefaultStoriesService(st, lgr)
+
+				return sv.DeleteStory(str.GetID())
+			},
+			expectedResult: 0,
+			expectedError:  errors.New("failed to delete story"),
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			res, err := testCase.actualResult()
+
+			assert.Equal(t, testCase.expectedError, err)
+			assert.Equal(t, testCase.expectedResult, res)
+		})
+	}
+}
+
 func TestStoryServiceSearchStories(t *testing.T) {
 	testCases := []struct {
 		name           string

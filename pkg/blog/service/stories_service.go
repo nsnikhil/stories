@@ -6,6 +6,7 @@ type StoriesService interface {
 	AddStory(story *domain.Story) error
 	GetStory(storyID string) (*domain.Story, error)
 	UpdateStory(story *domain.Story) (int64, error)
+	DeleteStory(storyID string) (int64, error)
 	SearchStories(query string) ([]domain.Story, error)
 	GetMostViewsStories(offset, limit int) ([]domain.Story, error)
 	GetTopRatedStories(offset, limit int) ([]domain.Story, error)
