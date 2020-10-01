@@ -7,8 +7,8 @@ ALL_PACKAGES=$(shell go list ./... | grep -v "vendor")
 setup: copy-config init-db migrate test
 
 init-db:
-	psql -c "create user storiesuser superuser password 'storeisdbpassword';" -U postgres
-	psql -c "create database storiesdb owner=storiesuser" -U postgres
+	psql -c "create user stories_user superuser password 'stories_password';" -U postgres
+	psql -c "create database stories_db owner=stories_user" -U postgres
 
 deps:
 	go mod download

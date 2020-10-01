@@ -1,28 +1,12 @@
 package main
 
-import (
-	"fmt"
-	"os"
-)
-
-func start(command string) {
-	commands := map[string]func(){
-		serveCommand:    startServer,
-		migrateCommand:  runMigrations,
-		rollbackCommand: rollBackMigrations,
-	}
-
-	if commands[command] == nil {
-		panic(fmt.Errorf("invalid command %s", command))
-	}
-
-	newCommand(command, commands[command]).execute()
-}
+import "os"
 
 func main() {
 	args := os.Args
-	if len(args) == 0 {
-		panic("please provide an valid command")
+	if len(args) < 2 {
+		panic("please provide a command")
 	}
-	start(args[1])
+
+	execute(args[1])
 }

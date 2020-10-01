@@ -14,4 +14,6 @@ require (
 	go.uber.org/zap v1.10.0
 	google.golang.org/grpc v1.30.0
 	gopkg.in/alexcesaro/statsd.v2 v2.0.0
+	gorm.io/driver/postgres v1.0.0
+	gorm.io/gorm v1.9.19
 )

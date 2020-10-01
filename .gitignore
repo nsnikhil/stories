@@ -13,7 +13,7 @@ vendor/
 *.out
 
 pkg/blog/client
-env.yaml
+local.env
 *.pem
 *.crt
 *.key

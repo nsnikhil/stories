@@ -1,0 +1,11 @@
+package grpc
+
+import (
+	"context"
+	"github.com/nsnikhil/stories-proto/proto"
+)
+
+func (ss *storiesServer) Ping(ctx context.Context, in *proto.PingRequest) (*proto.PingResponse, error) {
+	ss.deps.logger.Info("[storiesServer] [ping]")
+	return &proto.PingResponse{Message: "pong"}, nil
+}

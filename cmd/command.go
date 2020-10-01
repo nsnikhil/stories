@@ -1,17 +1,30 @@
 package main
 
-type command struct {
-	name string
-	run  func()
-}
+import (
+	"github.com/nsnikhil/stories/pkg/app"
+	"github.com/nsnikhil/stories/pkg/store"
+	"log"
+)
 
-func (c command) execute() {
-	c.run()
-}
+const (
+	serveCommand    = "serve"
+	migrateCommand  = "migrate"
+	rollbackCommand = "rollback"
+)
 
-func newCommand(name string, run func()) command {
-	return command{
-		name: name,
-		run:  run,
+func commands() map[string]func() {
+	return map[string]func(){
+		serveCommand:    app.Start,
+		migrateCommand:  store.RunMigrations,
+		rollbackCommand: store.RollBackMigrations,
 	}
+}
+
+func execute(cmd string) {
+	run, ok := commands()[cmd]
+	if !ok {
+		log.Fatal("invalid command")
+	}
+
+	run()
 }
