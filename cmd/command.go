@@ -7,16 +7,18 @@ import (
 )
 
 const (
-	serveCommand    = "serve"
-	migrateCommand  = "migrate"
-	rollbackCommand = "rollback"
+	grpcServeCommand = "grpc-serve"
+	httpServeCommand = "http-serve"
+	migrateCommand   = "migrate"
+	rollbackCommand  = "rollback"
 )
 
 func commands() map[string]func() {
 	return map[string]func(){
-		serveCommand:    app.Start,
-		migrateCommand:  store.RunMigrations,
-		rollbackCommand: store.RollBackMigrations,
+		grpcServeCommand: app.StartGRPCServer,
+		httpServeCommand: app.StartHTTPServer,
+		migrateCommand:   store.RunMigrations,
+		rollbackCommand:  store.RollBackMigrations,
 	}
 }
 

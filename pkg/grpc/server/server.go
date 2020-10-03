@@ -56,12 +56,12 @@ func (as *appServer) Start() {
 	proto.RegisterStoriesApiServer(grpcServer, storiesServer)
 	proto.RegisterHealthServer(grpcServer, healthServer)
 
-	listener, err := net.Listen("tcp", as.cfg.ServerConfig().Address())
+	listener, err := net.Listen("tcp", as.cfg.GRPCServerConfig().Address())
 	if err != nil {
 		as.lgr.Sugar().Fatalf("failed to listen: %v", err)
 	}
 
-	as.lgr.Sugar().Infof("listening on %s", as.cfg.ServerConfig().Address())
+	as.lgr.Sugar().Infof("listening on %s", as.cfg.GRPCServerConfig().Address())
 	go func() {
 		if err := grpcServer.Serve(listener); err != nil {
 			log.Fatal(err)
@@ -75,7 +75,7 @@ func newGrpcServer(as *appServer) *grpc.Server {
 	return grpc.NewServer(
 		grpc.KeepaliveParams(
 			keepalive.ServerParameters{
-				MaxConnectionIdle: time.Minute * time.Duration(as.cfg.ServerConfig().IdleConnectionTimeoutInMinutes()),
+				MaxConnectionIdle: time.Minute * time.Duration(as.cfg.GRPCServerConfig().IdleConnectionTimeoutInMinutes()),
 			},
 		),
 		grpc.UnaryInterceptor(

@@ -15,7 +15,7 @@ import (
 const address = "127.0.0.1:8080"
 
 func TestStories(t *testing.T) {
-	go app.Start()
+	go app.StartGRPCServer()
 	waitForServer()
 
 	cl := getClient(t)

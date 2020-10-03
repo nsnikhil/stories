@@ -6,18 +6,23 @@ import (
 )
 
 type Config struct {
-	env            string
-	migrationPath  string
-	serverConfig   ServerConfig
-	newRelicConfig NewRelicConfig
-	databaseConfig DatabaseConfig
-	storyConfig    StoryConfig
-	logConfig      LogConfig
-	logFileConfig  LogFileConfig
+	env              string
+	migrationPath    string
+	grpcServerConfig GRPCServerConfig
+	httpServerConfig HTTPServerConfig
+	newRelicConfig   NewRelicConfig
+	databaseConfig   DatabaseConfig
+	storyConfig      StoryConfig
+	logConfig        LogConfig
+	logFileConfig    LogFileConfig
 }
 
-func (c Config) ServerConfig() ServerConfig {
-	return c.serverConfig
+func (c Config) GRPCServerConfig() GRPCServerConfig {
+	return c.grpcServerConfig
+}
+
+func (c Config) HTTPServerConfig() HTTPServerConfig {
+	return c.httpServerConfig
 }
 
 func (c Config) NewRelicConfig() NewRelicConfig {
@@ -64,14 +69,15 @@ func NewConfig() Config {
 	}
 
 	return Config{
-		env:            getString("ENV"),
-		migrationPath:  getString("MIGRATION_PATH"),
-		serverConfig:   newServerConfig(),
-		newRelicConfig: newNewRelicConfig(),
-		databaseConfig: newDatabaseConfig(),
-		storyConfig:    newStoryConfig(),
-		logConfig:      newLogConfig(),
-		logFileConfig:  newLogFileConfig(),
+		env:              getString("ENV"),
+		migrationPath:    getString("MIGRATION_PATH"),
+		grpcServerConfig: newGRPCServerConfig(),
+		httpServerConfig: newHTTPServerConfig(),
+		newRelicConfig:   newNewRelicConfig(),
+		databaseConfig:   newDatabaseConfig(),
+		storyConfig:      newStoryConfig(),
+		logConfig:        newLogConfig(),
+		logFileConfig:    newLogFileConfig(),
 	}
 
 }
