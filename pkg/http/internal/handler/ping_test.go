@@ -17,5 +17,5 @@ func TestPingHandler(t *testing.T) {
 	handler.PingHandler()(w, r)
 
 	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Equal(t, "{\"data\":\"pong\",\"error\":{},\"success\":true}", w.Body.String())
+	assert.Equal(t, "{\"data\":\"pong\",\"success\":true}", w.Body.String())
 }

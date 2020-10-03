@@ -2,6 +2,7 @@ package router_test
 
 import (
 	"github.com/newrelic/go-agent/v3/newrelic"
+	"github.com/nsnikhil/stories/pkg/config"
 	"github.com/nsnikhil/stories/pkg/http/router"
 	reporters "github.com/nsnikhil/stories/pkg/reporting"
 	"github.com/nsnikhil/stories/pkg/story/service"
@@ -14,7 +15,10 @@ import (
 )
 
 func TestRouter(t *testing.T) {
+	cfg := config.NewConfig()
+
 	r := router.NewRouter(
+		cfg.StoryConfig(),
 		zap.NewNop(),
 		&newrelic.Application{},
 		&reporters.MockPrometheus{},
@@ -30,6 +34,18 @@ func TestRouter(t *testing.T) {
 			actualResult: func() int {
 				resp := httptest.NewRecorder()
 				req, err := http.NewRequest(http.MethodGet, "/ping", nil)
+				require.NoError(t, err)
+
+				r.ServeHTTP(resp, req)
+
+				return resp.Code
+			},
+		},
+		{
+			name: "test add route",
+			actualResult: func() int {
+				resp := httptest.NewRecorder()
+				req, err := http.NewRequest(http.MethodPost, "/story/add", nil)
 				require.NoError(t, err)
 
 				r.ServeHTTP(resp, req)

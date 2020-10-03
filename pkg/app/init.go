@@ -39,13 +39,14 @@ func initHTTPServer() httpserver.Server {
 
 	svc := initService(cfg)
 
-	rt := initRouter(lgr, nr, pr, svc)
+	rt := initRouter(cfg.StoryConfig(), lgr, nr, pr, svc)
 
 	return httpserver.NewServer(cfg, lgr, rt)
 }
 
-func initRouter(lgr *zap.Logger, newRelic *newrelic.Application, prometheus reporters.Prometheus, svc service.StoryService) http.Handler {
+func initRouter(cfg config.StoryConfig, lgr *zap.Logger, newRelic *newrelic.Application, prometheus reporters.Prometheus, svc service.StoryService) http.Handler {
 	return router.NewRouter(
+		cfg,
 		lgr,
 		newRelic,
 		prometheus,

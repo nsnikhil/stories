@@ -33,7 +33,7 @@ func TestWriteSuccessResponse(t *testing.T) {
 				return w.Body.String(), w.Code
 			},
 			expectedCode:   http.StatusCreated,
-			expectedResult: "{\"data\":{\"resp_id\":\"resp-id\",\"resp_data\":\"resp data\"},\"error\":{},\"success\":true}",
+			expectedResult: "{\"data\":{\"resp_id\":\"resp-id\",\"resp_data\":\"resp data\"},\"success\":true}",
 		},
 		{
 			name: "write success response failure",

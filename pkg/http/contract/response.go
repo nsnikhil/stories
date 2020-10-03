@@ -2,7 +2,7 @@ package contract
 
 type APIResponse struct {
 	Data    interface{} `json:"data,omitempty"`
-	Error   Error       `json:"error,omitempty"`
+	Error   *Error      `json:"error,omitempty"`
 	Success bool        `json:"success"`
 }
 
@@ -20,7 +20,7 @@ func NewSuccessResponse(data interface{}) APIResponse {
 
 func NewFailureResponse(errorCode, description string) APIResponse {
 	return APIResponse{
-		Error: Error{
+		Error: &Error{
 			Code:    errorCode,
 			Message: description,
 		},

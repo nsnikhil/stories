@@ -5,6 +5,7 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/newrelic/go-agent/v3/integrations/nrgorilla"
 	"github.com/newrelic/go-agent/v3/newrelic"
+	"github.com/nsnikhil/stories/pkg/config"
 	"github.com/nsnikhil/stories/pkg/http/internal/handler"
 	mdl "github.com/nsnikhil/stories/pkg/http/internal/middleware"
 	reporters "github.com/nsnikhil/stories/pkg/reporting"
@@ -16,21 +17,32 @@ import (
 
 const (
 	pingAPI = "ping"
+	addAPI  = "add"
 
-	pingPath   = "/ping"
+	pingPath = "/ping"
+
+	storyPath = "/story"
+	addPath   = "/add"
+
 	metricPath = "/metrics"
 )
 
-func NewRouter(lgr *zap.Logger, newRelic *newrelic.Application, prometheus reporters.Prometheus, svc service.StoryService) http.Handler {
-	return getChiRouter(lgr, newRelic, prometheus)
+func NewRouter(cfg config.StoryConfig, lgr *zap.Logger, newRelic *newrelic.Application, prometheus reporters.Prometheus, svc service.StoryService) http.Handler {
+	return getChiRouter(cfg, lgr, newRelic, prometheus, svc)
 }
 
-func getChiRouter(lgr *zap.Logger, newRelic *newrelic.Application, pr reporters.Prometheus) *chi.Mux {
+func getChiRouter(cfg config.StoryConfig, lgr *zap.Logger, newRelic *newrelic.Application, pr reporters.Prometheus, svc service.StoryService) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.Recoverer)
 	r.Use(nrgorilla.Middleware(newRelic))
 
 	r.Get(pingPath, withMiddlewares(lgr, pr, pingAPI, handler.PingHandler()))
+
+	ah := handler.NewAddHandler(cfg, svc)
+
+	r.Route(storyPath, func(r chi.Router) {
+		r.Post(addPath, withMiddlewares(lgr, pr, addAPI, mdl.WithError(ah.Add)))
+	})
 
 	r.Handle(metricPath, promhttp.Handler())
 
