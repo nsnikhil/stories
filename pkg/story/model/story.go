@@ -1,15 +1,13 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"time"
 )
 
-const (
-	tableName = "stories"
-	uuidRegex = "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
-)
+const uuidRegex = "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
 
 type Story struct {
 	ID        string
@@ -66,63 +64,11 @@ func (s *Story) DownVote() {
 	s.DownVotes++
 }
 
-func (Story) TableName() string {
-	return tableName
+func NewStoryBuilder() *StoryBuilder {
+	return &StoryBuilder{}
 }
 
-func NewStory(title, body string) (*Story, error) {
-	if !isValidString(title) {
-		return nil, fmt.Errorf("title cannot be empty")
-	}
-
-	if !isValidString(body) {
-		return nil, fmt.Errorf("boud cannot be empty")
-	}
-
-	return &Story{Title: title, Body: body}, nil
-}
-
-//func NewVanillaStory(title, body string) (*Story, error) {
-//	if !isValidString(title) {
-//		return nil, fmt.Errorf("title cannot be empty")
-//	}
-//
-//	if !isValidString(body) {
-//		return nil, fmt.Errorf("boud cannot be empty")
-//	}
-//
-//	return newStoryBuilder().
-//		setTitle(title).
-//		setBody(body).
-//		build(), nil
-//}
-
-//func NewStoryFull(id, title, body string, viewCount, upVotes, downVotes int64, createdAt, updatedAt time.Time) (*Story, error) {
-//	if !isValidUUID(id) {
-//		return nil, fmt.Errorf("invalid id: %s", id)
-//	}
-//
-//	if !isValidString(title) {
-//		return nil, fmt.Errorf("title cannot be empty")
-//	}
-//
-//	if !isValidString(body) {
-//		return nil, fmt.Errorf("boud cannot be empty")
-//	}
-//
-//	return newStoryBuilder().
-//		setID(id).
-//		setTitle(title).
-//		setBody(body).
-//		setViewCount(viewCount).
-//		setUpVotes(upVotes).
-//		setDownVotes(downVotes).
-//		setCreatedAt(createdAt).
-//		setUpdatedAt(updatedAt).
-//		build(), nil
-//}
-
-type storyBuilder struct {
+type StoryBuilder struct {
 	id        string
 	title     string
 	body      string
@@ -131,53 +77,118 @@ type storyBuilder struct {
 	downVotes int64
 	createdAt time.Time
 	updatedAt time.Time
+
+	err error
 }
 
-func newStoryBuilder() *storyBuilder {
-	return &storyBuilder{}
-}
+func (b *StoryBuilder) SetID(id string) *StoryBuilder {
+	if b.err != nil {
+		return b
+	}
 
-func (b *storyBuilder) setID(id string) *storyBuilder {
+	if !isValidUUID(id) {
+		b.err = fmt.Errorf("invalid id: %s", id)
+		return b
+	}
+
 	b.id = id
 	return b
 }
 
-func (b *storyBuilder) setTitle(title string) *storyBuilder {
+func (b *StoryBuilder) SetTitle(maxLength int, title string) *StoryBuilder {
+	if b.err != nil {
+		return b
+	}
+
+	sz := len(title)
+
+	if sz == 0 {
+		b.err = errors.New("title cannot be empty")
+		return b
+	}
+
+	if sz > maxLength {
+		b.err = errors.New("title max length exceeded")
+		return b
+	}
+
 	b.title = title
 	return b
 }
 
-func (b *storyBuilder) setBody(body string) *storyBuilder {
+func (b *StoryBuilder) SetBody(maxLength int, body string) *StoryBuilder {
+	if b.err != nil {
+		return b
+	}
+
+	sz := len(body)
+
+	if sz == 0 {
+		b.err = errors.New("body cannot be empty")
+		return b
+	}
+
+	if sz > maxLength {
+		b.err = errors.New("body max length exceeded")
+		return b
+	}
+
 	b.body = body
 	return b
 }
 
-func (b *storyBuilder) setViewCount(viewCount int64) *storyBuilder {
+func (b *StoryBuilder) SetViewCount(viewCount int64) *StoryBuilder {
+	if b.err != nil {
+		return b
+	}
+
 	b.viewCount = viewCount
 	return b
 }
 
-func (b *storyBuilder) setUpVotes(upVotes int64) *storyBuilder {
+func (b *StoryBuilder) SetUpVotes(upVotes int64) *StoryBuilder {
+	if b.err != nil {
+		return b
+	}
+
 	b.upVotes = upVotes
 	return b
 }
 
-func (b *storyBuilder) setDownVotes(downVotes int64) *storyBuilder {
+func (b *StoryBuilder) SetDownVotes(downVotes int64) *StoryBuilder {
+	if b.err != nil {
+		return b
+	}
+
 	b.downVotes = downVotes
 	return b
 }
 
-func (b *storyBuilder) setCreatedAt(createdAt time.Time) *storyBuilder {
+func (b *StoryBuilder) SetCreatedAt(createdAt time.Time) *StoryBuilder {
+	if b.err != nil {
+		return b
+	}
+
 	b.createdAt = createdAt
 	return b
 }
 
-func (b *storyBuilder) setUpdatedAt(updatedAt time.Time) *storyBuilder {
+func (b *StoryBuilder) SetUpdatedAt(updatedAt time.Time) *StoryBuilder {
+	if b.err != nil {
+		return b
+	}
+
 	b.updatedAt = updatedAt
 	return b
 }
 
-func (b *storyBuilder) build() *Story {
+func (b *StoryBuilder) Build() (*Story, error) {
+	if b.err != nil {
+		return nil, b.err
+	}
+
+	// TODO: FIX WHEN BUILD IS CALLED WITHOUT INVOKING SET TITLE AND SET BODY
+
 	return &Story{
 		ID:        b.id,
 		Title:     b.title,
@@ -187,13 +198,9 @@ func (b *storyBuilder) build() *Story {
 		DownVotes: b.downVotes,
 		CreatedAt: b.createdAt,
 		UpdatedAt: b.createdAt,
-	}
+	}, nil
 }
 
 func isValidUUID(uuid string) bool {
 	return regexp.MustCompile(uuidRegex).MatchString(uuid)
-}
-
-func isValidString(s string) bool {
-	return len(s) != 0
 }

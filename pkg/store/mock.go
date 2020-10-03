@@ -9,9 +9,9 @@ type MockStoriesStore struct {
 	mock.Mock
 }
 
-func (mock *MockStoriesStore) AddStory(story *model.Story) error {
+func (mock *MockStoriesStore) AddStory(story *model.Story) (string, error) {
 	args := mock.Called(story)
-	return args.Error(0)
+	return args.String(0), args.Error(1)
 }
 
 func (mock *MockStoriesStore) GetStories(storyIDs ...string) ([]model.Story, error) {

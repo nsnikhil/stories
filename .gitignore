@@ -19,3 +19,5 @@ local.env
 *.key
 
 playground.go
+
+*.log

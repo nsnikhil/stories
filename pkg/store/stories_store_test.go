@@ -8,7 +8,6 @@ import (
 	"github.com/nsnikhil/stories/pkg/story/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
 	"regexp"
 	"testing"
 )
@@ -25,7 +24,11 @@ func TestStoriesStoreAddStory(t *testing.T) {
 		{
 			name: "test insert story in db",
 			actualResult: func() (string, error) {
-				st, err := model.NewStory("title", "this is a body")
+				st, err := model.NewStoryBuilder().
+					SetTitle(100, "title").
+					SetBody(100, "this is a body").
+					Build()
+
 				require.NoError(t, err)
 
 				id, err := str.AddStory(st)
@@ -38,7 +41,11 @@ func TestStoriesStoreAddStory(t *testing.T) {
 		{
 			name: "test insert story fails due to empty title",
 			actualResult: func() (string, error) {
-				st, err := model.NewStory("one", "this is a story one")
+				st, err := model.NewStoryBuilder().
+					SetTitle(100, "one").
+					SetBody(100, "this is a story one").
+					Build()
+
 				require.NoError(t, err)
 
 				st.Title = ""
@@ -51,7 +58,11 @@ func TestStoriesStoreAddStory(t *testing.T) {
 		{
 			name: "test insert story fails due to empty body",
 			actualResult: func() (string, error) {
-				st, err := model.NewStory("one", "this is a story one")
+				st, err := model.NewStoryBuilder().
+					SetTitle(100, "one").
+					SetBody(100, "this is a story one").
+					Build()
+
 				require.NoError(t, err)
 
 				st.Body = ""
@@ -92,7 +103,11 @@ func TestGetStories(t *testing.T) {
 		{
 			name: "test get a story",
 			actualResult: func() ([]model.Story, error) {
-				st, err := model.NewStory("title", "this is a body")
+				st, err := model.NewStoryBuilder().
+					SetTitle(100, "title").
+					SetBody(100, "this is a body").
+					Build()
+
 				require.NoError(t, err)
 
 				id, err := str.AddStory(st)
@@ -104,7 +119,11 @@ func TestGetStories(t *testing.T) {
 				return stories, err
 			},
 			expectedResult: func() []model.Story {
-				st, err := model.NewStory("title", "this is a body")
+				st, err := model.NewStoryBuilder().
+					SetTitle(100, "title").
+					SetBody(100, "this is a body").
+					Build()
+
 				require.NoError(t, err)
 
 				return []model.Story{*st}
@@ -113,13 +132,21 @@ func TestGetStories(t *testing.T) {
 		{
 			name: "test get multiple stories",
 			actualResult: func() ([]model.Story, error) {
-				st, err := model.NewStory("title", "this is a body")
+				st, err := model.NewStoryBuilder().
+					SetTitle(100, "title").
+					SetBody(100, "this is a body").
+					Build()
+
 				require.NoError(t, err)
 
 				idOne, err := str.AddStory(st)
 				require.NoError(t, err)
 
-				st, err = model.NewStory("other", "this is a other's body")
+				st, err = model.NewStoryBuilder().
+					SetTitle(100, "other").
+					SetBody(100, "this is a other's body").
+					Build()
+
 				require.NoError(t, err)
 
 				idTwo, err := str.AddStory(st)
@@ -131,10 +158,18 @@ func TestGetStories(t *testing.T) {
 				return stories, err
 			},
 			expectedResult: func() []model.Story {
-				stOne, err := model.NewStory("title", "this is a body")
+				stOne, err := model.NewStoryBuilder().
+					SetTitle(100, "title").
+					SetBody(100, "this is a body").
+					Build()
+
 				require.NoError(t, err)
 
-				stTwo, err := model.NewStory("other", "this is a other's body")
+				stTwo, err := model.NewStoryBuilder().
+					SetTitle(100, "other").
+					SetBody(100, "this is a other's body").
+					Build()
+
 				require.NoError(t, err)
 
 				return []model.Story{*stOne, *stTwo}
@@ -148,7 +183,7 @@ func TestGetStories(t *testing.T) {
 			expectedResult: func() []model.Story {
 				return []model.Story{}
 			},
-			expectedError: errors.New("no record found"),
+			expectedError: errors.New("no records found"),
 		},
 		{
 			name: "test return error when id is not valid uuid",
@@ -195,7 +230,11 @@ func TestStoriesStoreUpdateStory(t *testing.T) {
 		{
 			name: "test update story",
 			actualResult: func() (*model.Story, int64, error) {
-				st, err := model.NewStory("one", "this is a story one")
+				st, err := model.NewStoryBuilder().
+					SetTitle(100, "one").
+					SetBody(100, "this is a story one").
+					Build()
+
 				require.NoError(t, err)
 
 				id, err := str.AddStory(st)
@@ -221,7 +260,11 @@ func TestStoriesStoreUpdateStory(t *testing.T) {
 				return st, c, err
 			},
 			expectedResult: func() *model.Story {
-				str, err := model.NewStory("one", "this is a story one")
+				str, err := model.NewStoryBuilder().
+					SetTitle(100, "one").
+					SetBody(100, "this is a story one").
+					Build()
+
 				require.NoError(t, err)
 
 				for i := 0; i < 50; i++ {
@@ -239,7 +282,11 @@ func TestStoriesStoreUpdateStory(t *testing.T) {
 		{
 			name: "test update story return error when story is not present",
 			actualResult: func() (*model.Story, int64, error) {
-				st, err := model.NewStory("one", "this is a story one")
+				st, err := model.NewStoryBuilder().
+					SetTitle(100, "one").
+					SetBody(100, "this is a story one").
+					Build()
+
 				require.NoError(t, err)
 
 				st.ID = "ced5aa3b-b39a-4da4-b8bf-d03e3c8daa7a"
@@ -252,6 +299,7 @@ func TestStoriesStoreUpdateStory(t *testing.T) {
 				return nil
 			},
 			expectedCount: 0,
+			expectedError: errors.New("failed to update story"),
 		},
 	}
 
@@ -287,7 +335,11 @@ func TestStoriesStoreDeleteStory(t *testing.T) {
 		{
 			name: "test delete story",
 			actualResult: func() (int64, error) {
-				st, err := model.NewStory("one", "this is a story one")
+				st, err := model.NewStoryBuilder().
+					SetTitle(100, "one").
+					SetBody(100, "this is a story one").
+					Build()
+
 				require.NoError(t, err)
 
 				id, err := str.AddStory(st)
@@ -307,6 +359,7 @@ func TestStoriesStoreDeleteStory(t *testing.T) {
 				return str.DeleteStory("ced5aa3b-b39a-4da4-b8bf-d03e3c8daa7a")
 			},
 			expectedCount: 0,
+			expectedError: errors.New("failed to delete story"),
 		},
 	}
 
@@ -330,10 +383,14 @@ func TestStoriesStoreGetMostViewsStories(t *testing.T) {
 		}
 	}
 
-	createAndAddStory := func(title, body string, av bool, vc int, t *testing.T, store store.StoriesStore) {
-		st, err := model.NewStory(title, body)
+	createAndAddStory := func(title, body string, vc int, t *testing.T, store store.StoriesStore) {
+		st, err := model.NewStoryBuilder().
+			SetTitle(100, title).
+			SetBody(100, body).
+			Build()
+
 		require.NoError(t, err)
-		if av {
+		if vc > 0 {
 			addViews(st, vc)
 		}
 
@@ -350,10 +407,10 @@ func TestStoriesStoreGetMostViewsStories(t *testing.T) {
 		{
 			name: "test get top 2 most viewed story",
 			actualResult: func() ([]model.Story, error) {
-				createAndAddStory("one", "this is story one", false, 0, t, str)
-				createAndAddStory("two", "this is story two", true, 10, t, str)
-				createAndAddStory("three", "this is story three", true, 12, t, str)
-				createAndAddStory("four", "this is story four", false, 0, t, str)
+				createAndAddStory("one", "this is story one", 0, t, str)
+				createAndAddStory("two", "this is story two", 10, t, str)
+				createAndAddStory("three", "this is story three", 12, t, str)
+				createAndAddStory("four", "this is story four", 0, t, str)
 
 				stories, err := str.GetMostViewsStories(0, 2)
 
@@ -362,67 +419,91 @@ func TestStoriesStoreGetMostViewsStories(t *testing.T) {
 				return stories, err
 			},
 			expectedResult: func() []model.Story {
-				two, err := model.NewStory("two", "this is story two")
+				two, err := model.NewStoryBuilder().
+					SetTitle(100, "two").
+					SetBody(100, "this is story two").
+					Build()
+
 				require.NoError(t, err)
 				addViews(two, 10)
 
-				three, err := model.NewStory("three", "this is story three")
+				three, err := model.NewStoryBuilder().
+					SetTitle(100, "three").
+					SetBody(100, "this is story three").
+					Build()
+
 				require.NoError(t, err)
 				addViews(three, 12)
 
 				return []model.Story{*three, *two}
 			},
 		},
-		//{
-		//	name: "test get top most viewed story paginated",
-		//	actualResult: func() ([]model.Story, error) {
-		//		createAndAddStory("one", "this is story one", false, 0, t, str)
-		//		createAndAddStory("two", "this is story two", true, 10, t, str)
-		//		createAndAddStory("three", "this is story three", true, 12, t, str)
-		//		createAndAddStory("four", "this is story four", false, 0, t, str)
-		//
-		//		res := make([]model.Story, 0)
-		//
-		//		stories, err := str.GetMostViewsStories(0, 2)
-		//		require.NoError(t, err)
-		//		res = append(res, stories...)
-		//
-		//		stories, err = str.GetMostViewsStories(2, 2)
-		//		require.NoError(t, err)
-		//		res = append(res, stories...)
-		//
-		//		truncate(db)
-		//
-		//		return res, err
-		//	},
-		//	expectedResult: func() []model.Story {
-		//		two, err := model.NewVanillaStory("two", "this is story two")
-		//		require.NoError(t, err)
-		//		addViews(two, 10)
-		//
-		//		three, err := model.NewVanillaStory("three", "this is story three")
-		//		require.NoError(t, err)
-		//		addViews(three, 12)
-		//
-		//		one, err := model.NewVanillaStory("one", "this is story one")
-		//		require.NoError(t, err)
-		//
-		//		four, err := model.NewVanillaStory("four", "this is story four")
-		//		require.NoError(t, err)
-		//
-		//		return []model.Story{*three, *two, *one, *four}
-		//	},
-		//},
-		//{
-		//	name: "test return error when no records are present",
-		//	actualResult: func() ([]model.Story, error) {
-		//		return str.GetMostViewsStories(0, 2)
-		//	},
-		//	expectedResult: func() []model.Story {
-		//		return []model.Story{}
-		//	},
-		//	expectedError: errors.New("no records found"),
-		//},
+		{
+			name: "test get top most viewed story paginated",
+			actualResult: func() ([]model.Story, error) {
+				createAndAddStory("one", "this is story one", 0, t, str)
+				createAndAddStory("two", "this is story two", 10, t, str)
+				createAndAddStory("three", "this is story three", 12, t, str)
+				createAndAddStory("four", "this is story four", 0, t, str)
+
+				res := make([]model.Story, 0)
+
+				stories, err := str.GetMostViewsStories(0, 2)
+				require.NoError(t, err)
+				res = append(res, stories...)
+
+				stories, err = str.GetMostViewsStories(2, 2)
+				require.NoError(t, err)
+				res = append(res, stories...)
+
+				truncate(db)
+
+				return res, err
+			},
+			expectedResult: func() []model.Story {
+				two, err := model.NewStoryBuilder().
+					SetTitle(100, "two").
+					SetBody(100, "this is story two").
+					Build()
+
+				require.NoError(t, err)
+				addViews(two, 10)
+
+				three, err := model.NewStoryBuilder().
+					SetTitle(100, "three").
+					SetBody(100, "this is story three").
+					Build()
+
+				require.NoError(t, err)
+				addViews(three, 12)
+
+				one, err := model.NewStoryBuilder().
+					SetTitle(100, "one").
+					SetBody(100, "this is story one").
+					Build()
+
+				require.NoError(t, err)
+
+				four, err := model.NewStoryBuilder().
+					SetTitle(100, "four").
+					SetBody(100, "this is story four").
+					Build()
+
+				require.NoError(t, err)
+
+				return []model.Story{*three, *two, *one, *four}
+			},
+		},
+		{
+			name: "test return error when no records are present",
+			actualResult: func() ([]model.Story, error) {
+				return str.GetMostViewsStories(0, 2)
+			},
+			expectedResult: func() []model.Story {
+				return []model.Story{}
+			},
+			expectedError: errors.New("no records found"),
+		},
 	}
 
 	for _, testCase := range testCases {
@@ -445,129 +526,156 @@ func TestStoriesStoreGetMostViewsStories(t *testing.T) {
 	}
 }
 
-//func TestStoriesStoreGetTopRatedStories(t *testing.T) {
-//	db := getDB(t)
-//	str := store.NewStoriesStore(db, zap.NewNop())
-//
-//	addUpVotes := func(s *model.Story, c int) {
-//		for i := 0; i < c; i++ {
-//			s.UpVote()
-//		}
-//	}
-//
-//	createAndAddStory := func(title, body string, aup bool, uc int, t *testing.T, store store.StoriesStore) {
-//		st, err := model.NewVanillaStory(title, body)
-//		require.NoError(t, err)
-//		if aup {
-//			addUpVotes(st, uc)
-//		}
-//
-//		require.NoError(t, store.AddStory(st))
-//	}
-//
-//	testCases := []struct {
-//		name           string
-//		actualResult   func() ([]model.Story, error)
-//		expectedResult func() []model.Story
-//		expectedError  error
-//	}{
-//		{
-//			name: "test get 2 top rated story",
-//			actualResult: func() ([]model.Story, error) {
-//				createAndAddStory("one", "this is story one", false, 0, t, str)
-//				createAndAddStory("two", "this is story two", true, 10, t, str)
-//				createAndAddStory("three", "this is story three", true, 12, t, str)
-//				createAndAddStory("four", "this is story four", false, 0, t, str)
-//
-//				stories, err := str.GetTopRatedStories(0, 2)
-//
-//				truncate(db)
-//				return stories, err
-//			},
-//			expectedResult: func() []model.Story {
-//				two, err := model.NewVanillaStory("two", "this is story two")
-//				require.NoError(t, err)
-//				addUpVotes(two, 10)
-//
-//				three, err := model.NewVanillaStory("three", "this is story three")
-//				require.NoError(t, err)
-//				addUpVotes(three, 12)
-//
-//				return []model.Story{*three, *two}
-//			},
-//		},
-//		{
-//			name: "test get top rated story paginated",
-//			actualResult: func() ([]model.Story, error) {
-//				createAndAddStory("one", "this is story one", false, 0, t, str)
-//				createAndAddStory("two", "this is story two", true, 10, t, str)
-//				createAndAddStory("three", "this is story three", true, 12, t, str)
-//				createAndAddStory("four", "this is story four", false, 0, t, str)
-//
-//				res := make([]model.Story, 0)
-//
-//				stories, err := str.GetTopRatedStories(0, 2)
-//				require.NoError(t, err)
-//				res = append(res, stories...)
-//
-//				stories, err = str.GetTopRatedStories(2, 2)
-//				require.NoError(t, err)
-//				res = append(res, stories...)
-//
-//				truncate(db)
-//				return res, err
-//			},
-//			expectedResult: func() []model.Story {
-//				two, err := model.NewVanillaStory("two", "this is story two")
-//				require.NoError(t, err)
-//				addUpVotes(two, 10)
-//
-//				three, err := model.NewVanillaStory("three", "this is story three")
-//				require.NoError(t, err)
-//				addUpVotes(three, 12)
-//
-//				one, err := model.NewVanillaStory("one", "this is story one")
-//				require.NoError(t, err)
-//
-//				four, err := model.NewVanillaStory("four", "this is story four")
-//				require.NoError(t, err)
-//
-//				return []model.Story{*three, *two, *one, *four}
-//			},
-//		},
-//		{
-//			name: "test return error when no records are present",
-//			actualResult: func() ([]model.Story, error) {
-//				return str.GetTopRatedStories(0, 2)
-//			},
-//			expectedResult: func() []model.Story {
-//				return []model.Story{}
-//			},
-//			expectedError: errors.New("no records found"),
-//		},
-//	}
-//
-//	for _, testCase := range testCases {
-//		t.Run(testCase.name, func(t *testing.T) {
-//			res, err := testCase.actualResult()
-//			expRes := testCase.expectedResult()
-//
-//			assert.Equal(t, testCase.expectedError, err)
-//			assert.Equal(t, len(expRes), len(res))
-//
-//			sz := len(res)
-//
-//			for i := 0; i < sz; i++ {
-//				assert.True(t, isValidUUID(res[i].GetID()))
-//				assert.Equal(t, expRes[i].GetTitle(), res[i].GetTitle())
-//				assert.Equal(t, expRes[i].GetBody(), res[i].GetBody())
-//				assert.Equal(t, expRes[i].GetViewCount(), res[i].GetViewCount())
-//				assert.Equal(t, expRes[i].GetUpVotes(), res[i].GetUpVotes())
-//				assert.Equal(t, expRes[i].GetDownVotes(), res[i].GetDownVotes())
-//			}
-//		})
-//	}
-//}
+func TestStoriesStoreGetTopRatedStories(t *testing.T) {
+	db := getDB(t)
+	str := store.NewStoriesStore(db)
+
+	addUpVotes := func(s *model.Story, c int) {
+		for i := 0; i < c; i++ {
+			s.UpVote()
+		}
+	}
+
+	createAndAddStory := func(title, body string, uc int, t *testing.T, str store.StoriesStore) {
+		st, err := model.NewStoryBuilder().
+			SetTitle(100, title).
+			SetBody(100, body).
+			Build()
+
+		if uc > 0 {
+			addUpVotes(st, uc)
+		}
+
+		_, err = str.AddStory(st)
+		require.NoError(t, err)
+	}
+
+	testCases := []struct {
+		name           string
+		actualResult   func() ([]model.Story, error)
+		expectedResult func() []model.Story
+		expectedError  error
+	}{
+		{
+			name: "test get 2 top rated story",
+			actualResult: func() ([]model.Story, error) {
+				createAndAddStory("one", "this is story one", 0, t, str)
+				createAndAddStory("two", "this is story two", 10, t, str)
+				createAndAddStory("three", "this is story three", 12, t, str)
+				createAndAddStory("four", "this is story four", 0, t, str)
+
+				stories, err := str.GetTopRatedStories(0, 2)
+
+				truncate(db)
+				return stories, err
+			},
+			expectedResult: func() []model.Story {
+				two, err := model.NewStoryBuilder().
+					SetTitle(100, "two").
+					SetBody(100, "this is story two").
+					Build()
+
+				require.NoError(t, err)
+				addUpVotes(two, 10)
+
+				three, err := model.NewStoryBuilder().
+					SetTitle(100, "three").
+					SetBody(100, "this is story three").
+					Build()
+				require.NoError(t, err)
+				addUpVotes(three, 12)
+
+				return []model.Story{*three, *two}
+			},
+		},
+		{
+			name: "test get top rated story paginated",
+			actualResult: func() ([]model.Story, error) {
+				createAndAddStory("one", "this is story one", 0, t, str)
+				createAndAddStory("two", "this is story two", 10, t, str)
+				createAndAddStory("three", "this is story three", 12, t, str)
+				createAndAddStory("four", "this is story four", 0, t, str)
+
+				res := make([]model.Story, 0)
+
+				stories, err := str.GetTopRatedStories(0, 2)
+				require.NoError(t, err)
+				res = append(res, stories...)
+
+				stories, err = str.GetTopRatedStories(2, 2)
+				require.NoError(t, err)
+				res = append(res, stories...)
+
+				truncate(db)
+				return res, err
+			},
+			expectedResult: func() []model.Story {
+				two, err := model.NewStoryBuilder().
+					SetTitle(100, "two").
+					SetBody(100, "this is story two").
+					Build()
+
+				require.NoError(t, err)
+				addUpVotes(two, 10)
+
+				three, err := model.NewStoryBuilder().
+					SetTitle(100, "three").
+					SetBody(100, "this is story three").
+					Build()
+
+				require.NoError(t, err)
+				addUpVotes(three, 12)
+
+				one, err := model.NewStoryBuilder().
+					SetTitle(100, "one").
+					SetBody(100, "this is story one").
+					Build()
+
+				require.NoError(t, err)
+
+				four, err := model.NewStoryBuilder().
+					SetTitle(100, "four").
+					SetBody(100, "this is story four").
+					Build()
+
+				require.NoError(t, err)
+
+				return []model.Story{*three, *two, *one, *four}
+			},
+		},
+		{
+			name: "test return error when no records are present",
+			actualResult: func() ([]model.Story, error) {
+				return str.GetTopRatedStories(0, 2)
+			},
+			expectedResult: func() []model.Story {
+				return []model.Story{}
+			},
+			expectedError: errors.New("no records found"),
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			res, err := testCase.actualResult()
+			expRes := testCase.expectedResult()
+
+			assert.Equal(t, testCase.expectedError, err)
+			assert.Equal(t, len(expRes), len(res))
+
+			sz := len(res)
+
+			for i := 0; i < sz; i++ {
+				assert.True(t, isValidUUID(res[i].GetID()))
+				assert.Equal(t, expRes[i].GetTitle(), res[i].GetTitle())
+				assert.Equal(t, expRes[i].GetBody(), res[i].GetBody())
+				assert.Equal(t, expRes[i].GetViewCount(), res[i].GetViewCount())
+				assert.Equal(t, expRes[i].GetUpVotes(), res[i].GetUpVotes())
+				assert.Equal(t, expRes[i].GetDownVotes(), res[i].GetDownVotes())
+			}
+		})
+	}
+}
 
 func isValidUUID(uuid string) bool {
 	r := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
@@ -580,9 +688,8 @@ func truncate(db *sql.DB) {
 
 func getDB(t *testing.T) *sql.DB {
 	cfg := config.NewConfig().DatabaseConfig()
-	lgr := zap.NewNop()
 
-	handler := store.NewDBHandler(cfg, lgr)
+	handler := store.NewDBHandler(cfg)
 
 	db, err := handler.GetDB()
 	require.NoError(t, err)

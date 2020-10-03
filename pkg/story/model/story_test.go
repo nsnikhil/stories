@@ -1,103 +1,99 @@
-package model
+package model_test
 
 import (
 	"errors"
+	"github.com/nsnikhil/stories/pkg/story/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 )
 
-func TestCreateNewVanillaStory(t *testing.T) {
+func TestCreateNewStory(t *testing.T) {
 	testCases := []struct {
 		name           string
-		actualResult   func() (*Story, error)
-		expectedResult *Story
+		actualResult   func() (*model.Story, error)
+		expectedResult *model.Story
 		expectedError  error
 	}{
 		{
-			name: "test create new vanilla story",
-			actualResult: func() (*Story, error) {
-				return NewVanillaStory("title", "this is a test body")
+			name: "test create new story with title and body",
+			actualResult: func() (*model.Story, error) {
+				return model.NewStoryBuilder().
+					SetTitle(100, "title").
+					SetBody(10000, "this is a test body").
+					Build()
 			},
-			expectedResult: &Story{
+			expectedResult: &model.Story{
 				Title: "title",
 				Body:  "this is a test body",
 			},
 		},
 		{
-			name: "test return error when title is empty for vanilla story",
-			actualResult: func() (*Story, error) {
-				return NewVanillaStory("", "this is a test body")
+			name: "test create new story with title and body and id",
+			actualResult: func() (*model.Story, error) {
+				return model.NewStoryBuilder().
+					SetID("ced5aa3b-b39a-4da4-b8bf-d03e3c8daa7a").
+					SetTitle(100, "title").
+					SetBody(10000, "this is a test body").
+					Build()
+			},
+			expectedResult: &model.Story{
+				ID:    "ced5aa3b-b39a-4da4-b8bf-d03e3c8daa7a",
+				Title: "title",
+				Body:  "this is a test body",
+			},
+		},
+		{
+			name: "test failed to create story when id is invalid",
+			actualResult: func() (*model.Story, error) {
+				return model.NewStoryBuilder().
+					SetID("invalid").
+					SetTitle(100, "title").
+					SetBody(10000, "this is a test body").
+					Build()
+			},
+			expectedError: errors.New("invalid id: invalid"),
+		},
+		{
+			name: "test failed to create story when title is empty",
+			actualResult: func() (*model.Story, error) {
+				return model.NewStoryBuilder().
+					SetTitle(100, "").
+					SetBody(10000, "this is a test body").
+					Build()
 			},
 			expectedError: errors.New("title cannot be empty"),
 		},
 		{
-			name: "test return error when body is empty for vanilla story",
-			actualResult: func() (*Story, error) {
-				return NewVanillaStory("title", "")
+			name: "test failed to create story when title exceeds max length",
+			actualResult: func() (*model.Story, error) {
+				return model.NewStoryBuilder().
+					SetTitle(10, "this is a very long title").
+					SetBody(10000, "this is a test body").
+					Build()
+			},
+			expectedError: errors.New("title max length exceeded"),
+		},
+		{
+			name: "test failed to create story when title is empty",
+			actualResult: func() (*model.Story, error) {
+				return model.NewStoryBuilder().
+					SetTitle(100, "title").
+					SetBody(10000, "").
+					Build()
 			},
 			expectedError: errors.New("body cannot be empty"),
 		},
-	}
-
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			res, err := testCase.actualResult()
-
-			assert.Equal(t, testCase.expectedError, err)
-			assert.Equal(t, testCase.expectedResult, res)
-		})
-	}
-}
-
-func TestCreateNewStory(t *testing.T) {
-	id := "ced5aa3b-b39a-4da4-b8bf-d03e3c8daa7a"
-	createdAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
-	updatedAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
-
-	testCases := []struct {
-		name           string
-		actualResult   func() (*Story, error)
-		expectedResult *Story
-		expectedError  error
-	}{
 		{
-			name: "test create new story",
-			actualResult: func() (*Story, error) {
-				return NewStory(id, "title", "this is a test body", 0, 0, 0, createdAt, updatedAt)
+			name: "test failed to create story when title exceeds max length",
+			actualResult: func() (*model.Story, error) {
+				return model.NewStoryBuilder().
+					SetTitle(100, "title").
+					SetBody(10, "this is a test body").
+					Build()
 			},
-			expectedResult: &Story{
-				ID:        id,
-				Title:     "title",
-				Body:      "this is a test body",
-				ViewCount: 0,
-				UpVotes:   0,
-				DownVotes: 0,
-				CreatedAt: createdAt,
-				UpdatedAt: updatedAt,
-			},
-		},
-		{
-			name: "test return error when id is invalid",
-			actualResult: func() (*Story, error) {
-				return NewStory("invalid-id", "title", "this is a test body", 0, 0, 0, createdAt, updatedAt)
-			},
-			expectedError: errors.New("invalid id: invalid-id"),
-		},
-		{
-			name: "test return error when title is empty for story",
-			actualResult: func() (*Story, error) {
-				return NewStory(id, "", "this is a test body", 0, 0, 0, createdAt, updatedAt)
-			},
-			expectedError: errors.New("title cannot be empty"),
-		},
-		{
-			name: "test return error when body is empty for story",
-			actualResult: func() (*Story, error) {
-				return NewStory(id, "title", "", 0, 0, 0, createdAt, updatedAt)
-			},
-			expectedError: errors.New("body cannot be empty"),
+			expectedError: errors.New("body max length exceeded"),
 		},
 	}
 
@@ -116,7 +112,17 @@ func TestStoryGetter(t *testing.T) {
 	createdAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
 	updatedAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
 
-	st, err := NewStory(id, "title", "this is a test body", 25, 10, 2, createdAt, updatedAt)
+	st, err := model.NewStoryBuilder().
+		SetID(id).
+		SetTitle(100, "title").
+		SetBody(10000, "this is a test body").
+		SetViewCount(25).
+		SetUpVotes(10).
+		SetDownVotes(2).
+		SetCreatedAt(createdAt).
+		SetUpdatedAt(updatedAt).
+		Build()
+
 	require.NoError(t, err)
 
 	testCases := []struct {
@@ -164,11 +170,6 @@ func TestStoryGetter(t *testing.T) {
 			actualResult:   st.GetUpdatedAt(),
 			expectedResult: updatedAt,
 		},
-		{
-			name:           "test get table name",
-			actualResult:   st.TableName(),
-			expectedResult: "story",
-		},
 	}
 
 	for _, testCase := range testCases {
@@ -189,21 +190,19 @@ func TestStoryAddView(t *testing.T) {
 		expectedResult int64
 	}{
 		{
-			name: "test add one view",
+			name: "test add views",
 			actualResult: func() int64 {
-				st, err := NewStory(id, "title", "this is a test body", 25, 10, 2, createdAt, updatedAt)
-				require.NoError(t, err)
+				st, err := model.NewStoryBuilder().
+					SetID(id).
+					SetTitle(100, "title").
+					SetBody(10000, "this is a test body").
+					SetViewCount(25).
+					SetUpVotes(10).
+					SetDownVotes(2).
+					SetCreatedAt(createdAt).
+					SetUpdatedAt(updatedAt).
+					Build()
 
-				st.AddView()
-
-				return st.GetViewCount()
-			},
-			expectedResult: int64(26),
-		},
-		{
-			name: "test add ten views",
-			actualResult: func() int64 {
-				st, err := NewStory(id, "title", "this is a test body", 25, 10, 2, createdAt, updatedAt)
 				require.NoError(t, err)
 
 				for i := 0; i < 10; i++ {
@@ -233,22 +232,21 @@ func TestStoryUpVote(t *testing.T) {
 		actualResult   func() int64
 		expectedResult int64
 	}{
-		{
-			name: "test add one up vote",
-			actualResult: func() int64 {
-				st, err := NewStory(id, "title", "this is a test body", 25, 10, 2, createdAt, updatedAt)
-				require.NoError(t, err)
 
-				st.UpVote()
-
-				return st.GetUpVotes()
-			},
-			expectedResult: int64(11),
-		},
 		{
-			name: "test add ten up votes",
+			name: "test add up votes",
 			actualResult: func() int64 {
-				st, err := NewStory(id, "title", "this is a test body", 25, 10, 2, createdAt, updatedAt)
+				st, err := model.NewStoryBuilder().
+					SetID(id).
+					SetTitle(100, "title").
+					SetBody(10000, "this is a test body").
+					SetViewCount(25).
+					SetUpVotes(10).
+					SetDownVotes(2).
+					SetCreatedAt(createdAt).
+					SetUpdatedAt(updatedAt).
+					Build()
+
 				require.NoError(t, err)
 
 				for i := 0; i < 10; i++ {
@@ -279,21 +277,19 @@ func TestStoryDownVote(t *testing.T) {
 		expectedResult int64
 	}{
 		{
-			name: "test add down vote",
+			name: "test add down votes",
 			actualResult: func() int64 {
-				st, err := NewStory(id, "title", "this is a test body", 25, 10, 2, createdAt, updatedAt)
-				require.NoError(t, err)
+				st, err := model.NewStoryBuilder().
+					SetID(id).
+					SetTitle(100, "title").
+					SetBody(10000, "this is a test body").
+					SetViewCount(25).
+					SetUpVotes(10).
+					SetDownVotes(2).
+					SetCreatedAt(createdAt).
+					SetUpdatedAt(updatedAt).
+					Build()
 
-				st.DownVote()
-
-				return st.GetDownVotes()
-			},
-			expectedResult: int64(3),
-		},
-		{
-			name: "test add ten down votes",
-			actualResult: func() int64 {
-				st, err := NewStory(id, "title", "this is a test body", 25, 10, 2, createdAt, updatedAt)
 				require.NoError(t, err)
 
 				for i := 0; i < 10; i++ {

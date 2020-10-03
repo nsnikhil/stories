@@ -1,17 +1,13 @@
-package test
+package test_test
 
 import (
 	"context"
 	"fmt"
-	newrelic "github.com/newrelic/go-agent"
 	"github.com/nsnikhil/stories-proto/proto"
-	config2 "github.com/nsnikhil/stories/pkg/config"
-	grpc2 "github.com/nsnikhil/stories/pkg/grpc"
+	"github.com/nsnikhil/stories/pkg/app"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"gopkg.in/alexcesaro/statsd.v2"
 	"testing"
 	"time"
 )
@@ -19,13 +15,13 @@ import (
 const address = "127.0.0.1:8080"
 
 func TestStories(t *testing.T) {
-	go startServer()
+	go app.Start()
 	waitForServer()
 
-	//cl := getClient(t)
+	cl := getClient(t)
 
-	//testPingRequest(t, cl)
-	//testScenarioOne(t, cl)
+	testPingRequest(t, cl)
+	testScenarioOne(t, cl)
 }
 
 func testPingRequest(t *testing.T, cl proto.StoriesApiClient) {
@@ -86,31 +82,31 @@ func testScenarioOne(t *testing.T, cl proto.StoriesApiClient) {
 		assert.NotNil(t, str.GetBody())
 	}
 
-	queriesMatrix := [][]string{
-		{"analyze", "series", "GO", "IMDb", "AMBIGUOUS", "astronomically", "Logarithmic"},
-		{"exponentially", "functions", "Quadratic", "characterize", "improvement", "day"},
-		{"consume", "they", "computation", "scale", "easily", "function"},
-		{"Binary", "Merge", "Search", "Bubble", "process", "processTwo"},
-	}
+	//queriesMatrix := [][]string{
+	//	{"analyze", "series", "GO", "IMDb", "AMBIGUOUS", "astronomically", "Logarithmic"},
+	//	{"exponentially", "functions", "Quadratic", "characterize", "improvement", "day"},
+	//	{"consume", "they", "computation", "scale", "easily", "function"},
+	//	{"Binary", "Merge", "Search", "Bubble", "process", "processTwo"},
+	//}
+	//
+	//time.Sleep(time.Second)
 
-	time.Sleep(time.Second)
-
-	for _, queries := range queriesMatrix {
-		sr := searchRequests(queries)
-
-		for _, r := range sr {
-			resp, err := cl.SearchStories(ctx, r)
-			require.NoError(t, err)
-
-			stories := resp.Stories
-
-			for _, story := range stories {
-				assert.NotNil(t, story.GetCreatedAtUnix())
-				assert.NotNil(t, story.GetUpdatedAtUnix())
-				assert.NotNil(t, story.GetTitle())
-			}
-		}
-	}
+	//for _, queries := range queriesMatrix {
+	//	sr := searchRequests(queries)
+	//
+	//	for _, r := range sr {
+	//		resp, err := cl.SearchStories(ctx, r)
+	//		require.NoError(t, err)
+	//
+	//		stories := resp.Stories
+	//
+	//		for _, story := range stories {
+	//			assert.NotNil(t, story.GetCreatedAtUnix())
+	//			assert.NotNil(t, story.GetUpdatedAtUnix())
+	//			assert.NotNil(t, story.GetTitle())
+	//		}
+	//	}
+	//}
 
 	ur := updateRequests(protoStories)
 
@@ -294,15 +290,4 @@ func getClient(t *testing.T) proto.StoriesApiClient {
 
 func waitForServer() {
 	time.Sleep(time.Second)
-}
-
-func startServer() {
-	cfg := config2.LoadConfigs()
-	lgr := zap.NewNop()
-
-	nrApp, _ := newrelic.NewApplication(newrelic.Config{})
-
-	sc, _ := statsd.New(statsd.Address(cfg.GetStatsDConfig().Address()), statsd.Prefix(cfg.GetStatsDConfig().Namespace()))
-
-	grpc2.NewAppServer(cfg, lgr, nrApp, sc).Start()
 }

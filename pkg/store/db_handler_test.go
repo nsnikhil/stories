@@ -5,7 +5,6 @@ import (
 	"github.com/nsnikhil/stories/pkg/config"
 	"github.com/nsnikhil/stories/pkg/store"
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap"
 	"testing"
 )
 
@@ -18,7 +17,7 @@ func TestGetDB(t *testing.T) {
 		{
 			name: "test get db success",
 			actualResult: func() error {
-				handler := store.NewDBHandler(config.NewConfig().DatabaseConfig(), zap.NewNop())
+				handler := store.NewDBHandler(config.NewConfig().DatabaseConfig())
 				_, err := handler.GetDB()
 				return err
 			},
@@ -27,11 +26,11 @@ func TestGetDB(t *testing.T) {
 		{
 			name: "test get db failure invalid driver",
 			actualResult: func() error {
-				handler := store.NewDBHandler(config.DatabaseConfig{}, zap.NewNop())
+				handler := store.NewDBHandler(config.DatabaseConfig{})
 				_, err := handler.GetDB()
 				return err
 			},
-			expectedError: errors.New("cannot parse `postgres://:xxxxx@:0/?sslmode=disable`: invalid port (outside range)"),
+			expectedError: errors.New("sql: unknown driver \"\" (forgotten import?)"),
 		},
 	}
 

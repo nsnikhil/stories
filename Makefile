@@ -54,7 +54,7 @@ clean:
 	rm -rf out/
 
 copy-config:
-	cp env.sample env.yaml
+	cp .env.sample local.env
 
 test:
 	go clean -testcache

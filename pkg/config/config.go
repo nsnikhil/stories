@@ -7,10 +7,13 @@ import (
 
 type Config struct {
 	env            string
+	migrationPath  string
 	serverConfig   ServerConfig
 	newRelicConfig NewRelicConfig
 	databaseConfig DatabaseConfig
 	storyConfig    StoryConfig
+	logConfig      LogConfig
+	logFileConfig  LogFileConfig
 }
 
 func (c Config) ServerConfig() ServerConfig {
@@ -25,11 +28,23 @@ func (c Config) DatabaseConfig() DatabaseConfig {
 	return c.databaseConfig
 }
 
+func (c Config) LogConfig() LogConfig {
+	return c.logConfig
+}
+
+func (c Config) LogFileConfig() LogFileConfig {
+	return c.logFileConfig
+}
+
 func (c Config) Env() string {
 	return c.env
 }
 
-func (c Config) BlogConfig() StoryConfig {
+func (c Config) MigrationPath() string {
+	return c.migrationPath
+}
+
+func (c Config) StoryConfig() StoryConfig {
 	return c.storyConfig
 }
 
@@ -41,6 +56,7 @@ func NewConfig() Config {
 	viper.AddConfigPath("./../")
 	viper.AddConfigPath("./../../")
 	viper.AddConfigPath("./../../../")
+	viper.AddConfigPath("./../../../../")
 
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -49,10 +65,13 @@ func NewConfig() Config {
 
 	return Config{
 		env:            getString("ENV"),
+		migrationPath:  getString("MIGRATION_PATH"),
 		serverConfig:   newServerConfig(),
 		newRelicConfig: newNewRelicConfig(),
 		databaseConfig: newDatabaseConfig(),
 		storyConfig:    newStoryConfig(),
+		logConfig:      newLogConfig(),
+		logFileConfig:  newLogFileConfig(),
 	}
 
 }

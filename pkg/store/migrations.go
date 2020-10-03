@@ -7,16 +7,14 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
 	"github.com/nsnikhil/stories/pkg/config"
-	"go.uber.org/zap"
 	"path/filepath"
 	"strings"
 )
 
 const (
-	migrationPath = "./pkg/blog/store/migrations"
-	rollBackStep  = -1
-	cutSet        = "file://"
-	databaseName  = "postgres"
+	rollBackStep = -1
+	cutSet       = "file://"
+	databaseName = "postgres"
 )
 
 func RunMigrations() {
@@ -52,7 +50,7 @@ func RollBackMigrations() {
 func newMigrate() (*migrate.Migrate, error) {
 	cfg := config.NewConfig()
 
-	dbHandler := NewDBHandler(cfg.DatabaseConfig(), zap.NewExample())
+	dbHandler := NewDBHandler(cfg.DatabaseConfig())
 
 	db, err := dbHandler.GetDB()
 	if err != nil {
@@ -64,7 +62,7 @@ func newMigrate() (*migrate.Migrate, error) {
 		return nil, err
 	}
 
-	sourcePath, err := getSourcePath(migrationPath)
+	sourcePath, err := getSourcePath(cfg.MigrationPath())
 	if err != nil {
 		return nil, err
 	}
