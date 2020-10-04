@@ -7,10 +7,10 @@ const (
 	success = "success"
 	failure = "failure"
 
-	apiCounterName = "url_shortener_api_call"
+	apiCounterName = "stories_api_call"
 	apiCounterHelp = "total number of api calls"
 
-	apiResponseTimeName = "url_shortener_api_response_time"
+	apiResponseTimeName = "stories_api_response_time"
 	apiResponseTimeHelp = "total time taken by the api"
 )
 

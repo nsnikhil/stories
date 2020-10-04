@@ -9,6 +9,20 @@ import (
 	"time"
 )
 
+func WithReqRespLogger(lgr *zap.Logger) func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		lgr.Sugar().Debug(req)
+
+		h, err := handler(ctx, req)
+		if err != nil {
+			lgr.Sugar().Debug(err)
+		}
+
+		lgr.Sugar().Debug(h)
+		return h, err
+	}
+}
+
 func WithErrorLogger(lgr *zap.Logger) func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		h, err := handler(ctx, req)

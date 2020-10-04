@@ -1,0 +1,68 @@
+version: '3.7'
+
+networks:
+  storiesnetwork:
+    driver: bridge
+
+services:
+
+  db:
+    image: postgres:alpine
+    restart: always
+    environment:
+      POSTGRES_DB: stories_db
+      POSTGRES_USER: stories_user
+      POSTGRES_PASSWORD: stories_password
+    networks:
+      - storiesnetwork
+    ports:
+      - 8432:5432
+    volumes:
+      - ../pkg/store/migrations/:/docker-entrypoint-initdb.d/
+
+  prometheus:
+    image: prom/prometheus:latest
+    restart: always
+    ports:
+      - 9090:9090
+    networks:
+      - storiesnetwork
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+  grafana:
+    image: grafana/grafana:latest
+    restart: always
+    networks:
+      - storiesnetwork
+    ports:
+      - 4040:3000
+    depends_on:
+      - prometheus
+
+  stories:
+    image: nsnikhil/stories:0.2
+    restart: always
+    ports:
+      - 8080:8080
+    env_file:
+      - docker.env
+    networks:
+      - storiesnetwork
+    depends_on:
+      - db
+      - grafana
+
+  envoy:
+    image: envoyproxy/envoy:v1.15-latest
+    restart: always
+    ports:
+      - 10000:10000
+    networks:
+      - storiesnetwork
+    volumes:
+      - ./envoy.yaml:/etc/envoy/envoy.yaml:ro
+    depends_on:
+      - stories

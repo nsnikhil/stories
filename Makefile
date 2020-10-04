@@ -1,5 +1,5 @@
 APP=stories
-APP_VERSION:=0.2
+APP_VERSION:=0.3
 APP_COMMIT:=$(shell git rev-parse HEAD)
 APP_EXECUTABLE="./out/$(APP)"
 ALL_PACKAGES=$(shell go list ./... | grep -v "vendor")
@@ -40,17 +40,10 @@ http-serve: build
 	$(APP_EXECUTABLE) http-serve
 
 docker-build:
-	docker build --build-arg SSH_PRIVATE_KEY="$$(cat ~/.ssh/travis_ci_key)" -t nsnikhil/$(APP):$(APP_VERSION) .
-	docker rmi -f $$(docker images -f "dangling=true" -q)
-
-ci-docker-build:
-	docker build --build-arg SSH_PRIVATE_KEY="$$(cat ~/.ssh/id_rsa)" -t nsnikhil/$(APP):$(APP_VERSION) .
+	docker build -t nsnikhil/$(APP):$(APP_VERSION) .
 	docker rmi -f $$(docker images -f "dangling=true" -q)
 
 docker-push: docker-build
-	docker push nsnikhil/$(APP):$(APP_VERSION)
-
-ci-docker-push: ci-docker-build
 	docker push nsnikhil/$(APP):$(APP_VERSION)
 
 clean:

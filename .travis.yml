@@ -1,17 +1,11 @@
 language: go
 
 go:
-  - "1.14"
+  - "1.15"
 
 services:
   - docker
   - postgresql
-
-env:
-  - GOPRIVATE=github.com/nsnikhil
-
-before_install:
-  - git config --global url."git@github.com:".insteadOf "https://github.com/"
 
 jobs:
   include:
@@ -23,5 +17,5 @@ jobs:
       if: tag IS present AND tag =~ ^\d+\.\d+(\.\d+)?$
       script:
         - echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
-        - make ci-docker-push
+        - make docker-push
 

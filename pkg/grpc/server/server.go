@@ -98,6 +98,7 @@ func newGrpcServer(as *appServer) *grpc.Server {
 		),
 		grpc.UnaryInterceptor(
 			grpc_middleware.ChainUnaryServer(
+				middleware.WithReqRespLogger(as.lgr),
 				middleware.WithPrometheus(as.pr),
 				middleware.WithErrorLogger(as.lgr),
 				grpc_recovery.UnaryServerInterceptor(),
