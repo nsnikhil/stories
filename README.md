@@ -12,9 +12,14 @@
 make setup
 ```
 
-#### start server
+#### start grpc server
 ```
-make serve
+make grpc-serve
+```
+
+#### start http server
+```
+make http-serve
 ```
 
 #### test

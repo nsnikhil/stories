@@ -12,7 +12,7 @@ out
 vendor/
 *.out
 
-pkg/blog/client
+pkg/client
 local.env
 *.pem
 *.crt
