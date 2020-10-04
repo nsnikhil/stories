@@ -74,13 +74,23 @@ func initLogger(cfg config.Config) *zap.Logger {
 	return reporters.NewLogger(
 		cfg.Env(),
 		cfg.LogConfig().Level(),
-		getWriters(cfg.LogFileConfig())...,
+		getWriters(cfg)...,
 	)
 }
 
-func getWriters(cfg config.LogFileConfig) []io.Writer {
-	return []io.Writer{
-		os.Stdout,
-		reporters.NewExternalLogFile(cfg),
+func getWriters(cfg config.Config, ) []io.Writer {
+	logSinkMap := map[string]io.Writer{
+		"stdout": os.Stdout,
+		"file":   reporters.NewExternalLogFile(cfg.LogFileConfig()),
 	}
+
+	var writers []io.Writer
+	for _, sink := range cfg.LogConfig().Sinks() {
+		w, ok := logSinkMap[sink]
+		if ok {
+			writers = append(writers, w)
+		}
+	}
+
+	return writers
 }
