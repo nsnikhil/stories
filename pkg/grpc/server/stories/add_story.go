@@ -6,7 +6,7 @@ import (
 	"github.com/nsnikhil/stories/pkg/story/model"
 )
 
-func (ss *StoriesServer) AddStory(ctx context.Context, req *proto.AddStoryRequest) (*proto.AddStoryResponse, error) {
+func (ss *Server) AddStory(ctx context.Context, req *proto.AddStoryRequest) (*proto.AddStoryResponse, error) {
 	st, err := model.NewStoryBuilder().
 		SetTitle(ss.cfg.TitleMaxLength(), req.GetStory().GetTitle()).
 		SetBody(ss.cfg.BodyMaxLength(), req.GetStory().GetBody()).

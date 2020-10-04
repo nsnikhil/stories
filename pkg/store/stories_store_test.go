@@ -33,7 +33,7 @@ func TestStoriesStoreAddStory(t *testing.T) {
 
 				id, err := str.AddStory(st)
 
-				truncate(db)
+				truncate(t, db)
 
 				return id, err
 			},
@@ -85,7 +85,6 @@ func TestStoriesStoreAddStory(t *testing.T) {
 				assert.Equal(t, testCase.expectedError.Error(), err.Error())
 				assert.Equal(t, "", res)
 			}
-
 		})
 	}
 }
@@ -115,7 +114,7 @@ func TestGetStories(t *testing.T) {
 
 				stories, err := str.GetStories(id)
 
-				truncate(db)
+				truncate(t, db)
 				return stories, err
 			},
 			expectedResult: func() []model.Story {
@@ -154,7 +153,7 @@ func TestGetStories(t *testing.T) {
 
 				stories, err := str.GetStories(idOne, idTwo)
 
-				truncate(db)
+				truncate(t, db)
 				return stories, err
 			},
 			expectedResult: func() []model.Story {
@@ -255,7 +254,7 @@ func TestStoriesStoreUpdateStory(t *testing.T) {
 
 				c, err := str.UpdateStory(st)
 
-				truncate(db)
+				truncate(t, db)
 
 				return st, c, err
 			},
@@ -347,7 +346,7 @@ func TestStoriesStoreDeleteStory(t *testing.T) {
 
 				c, err := str.DeleteStory(id)
 
-				truncate(db)
+				truncate(t, db)
 
 				return c, err
 			},
@@ -414,7 +413,7 @@ func TestStoriesStoreGetMostViewsStories(t *testing.T) {
 
 				stories, err := str.GetMostViewsStories(0, 2)
 
-				truncate(db)
+				truncate(t, db)
 
 				return stories, err
 			},
@@ -456,7 +455,7 @@ func TestStoriesStoreGetMostViewsStories(t *testing.T) {
 				require.NoError(t, err)
 				res = append(res, stories...)
 
-				truncate(db)
+				truncate(t, db)
 
 				return res, err
 			},
@@ -542,6 +541,8 @@ func TestStoriesStoreGetTopRatedStories(t *testing.T) {
 			SetBody(100, body).
 			Build()
 
+		require.NoError(t, err)
+
 		if uc > 0 {
 			addUpVotes(st, uc)
 		}
@@ -566,7 +567,7 @@ func TestStoriesStoreGetTopRatedStories(t *testing.T) {
 
 				stories, err := str.GetTopRatedStories(0, 2)
 
-				truncate(db)
+				truncate(t, db)
 				return stories, err
 			},
 			expectedResult: func() []model.Story {
@@ -606,7 +607,7 @@ func TestStoriesStoreGetTopRatedStories(t *testing.T) {
 				require.NoError(t, err)
 				res = append(res, stories...)
 
-				truncate(db)
+				truncate(t, db)
 				return res, err
 			},
 			expectedResult: func() []model.Story {
@@ -682,8 +683,9 @@ func isValidUUID(uuid string) bool {
 	return r.MatchString(uuid)
 }
 
-func truncate(db *sql.DB) {
-	db.Exec(`TRUNCATE stories`)
+func truncate(t *testing.T, db *sql.DB) {
+	_, err := db.Exec(`TRUNCATE stories`)
+	require.NoError(t, err)
 }
 
 func getDB(t *testing.T) *sql.DB {

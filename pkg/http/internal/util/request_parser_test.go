@@ -40,6 +40,7 @@ func TestParseRequest(t *testing.T) {
 				require.NoError(t, err)
 
 				var tr CusReq
+
 				return util.ParseRequest(r, &tr), tr
 			},
 			expectedResult: CusReq{ReqID: "req-id", ReqData: "req data"},
@@ -48,6 +49,7 @@ func TestParseRequest(t *testing.T) {
 			name: "test request parse failure when req is nil",
 			actualResult: func() (error, interface{}) {
 				var tr CusReq
+
 				return util.ParseRequest(nil, &tr), tr
 			},
 			expectedResult: CusReq{},
@@ -60,6 +62,7 @@ func TestParseRequest(t *testing.T) {
 				require.NoError(t, err)
 
 				var tr CusReq
+
 				return util.ParseRequest(r, &tr), tr
 			},
 			expectedResult: CusReq{},

@@ -14,17 +14,16 @@ func WithError(handler func(resp http.ResponseWriter, req *http.Request) error) 
 	return func(resp http.ResponseWriter, req *http.Request) {
 
 		err := handler(resp, req)
-		switch err.(type) {
+		switch t := err.(type) {
 		case nil:
 			return
 		case liberr.ResponseError:
-			util.WriteFailureResponse(err.(liberr.ResponseError), resp)
+			util.WriteFailureResponse(t, resp)
 			return
 		default:
 			util.WriteFailureResponse(liberr.InternalError(err.Error()), resp)
 			return
 		}
-
 	}
 }
 

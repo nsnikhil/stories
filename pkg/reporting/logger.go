@@ -30,6 +30,7 @@ func writeSyncers(writers ...io.Writer) []zapcore.WriteSyncer {
 	for _, w := range writers {
 		res = append(res, zapcore.AddSync(w))
 	}
+
 	return res
 }
 

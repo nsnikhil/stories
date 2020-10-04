@@ -28,5 +28,4 @@ func TestServerStart(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-
 }

@@ -234,7 +234,6 @@ func TestWithReqRespLog(t *testing.T) {
 
 	assert.True(t, strings.Contains(buf.String(), `{\"req_id\":\"req-id\",\"req_data\":\"req data\"}`))
 	assert.True(t, strings.Contains(buf.String(), `{\"resp_id\":\"resp-id\",\"resp_data\":\"resp data\"}`))
-
 }
 
 func TestWithResponseHeaders(t *testing.T) {

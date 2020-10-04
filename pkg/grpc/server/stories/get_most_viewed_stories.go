@@ -5,7 +5,7 @@ import (
 	"github.com/nsnikhil/stories-proto/proto"
 )
 
-func (ss *StoriesServer) GetMostViewedStories(ctx context.Context, req *proto.MostViewedStoriesRequest) (*proto.MostViewedStoriesResponse, error) {
+func (ss *Server) GetMostViewedStories(ctx context.Context, req *proto.MostViewedStoriesRequest) (*proto.MostViewedStoriesResponse, error) {
 	stories, err := ss.svc.GetMostViewsStories(int(req.GetOffset()), int(req.GetLimit()))
 	if err != nil {
 		return nil, err

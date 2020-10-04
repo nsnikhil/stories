@@ -5,22 +5,21 @@ import (
 	"github.com/nsnikhil/stories-proto/proto"
 )
 
-//goland:noinspection ALL
-type HealthServer struct {
+type Server struct {
 	proto.UnimplementedHealthServer
 }
 
-func NewHealthServer() *HealthServer {
-	return &HealthServer{}
+func NewHealthServer() *Server {
+	return &Server{}
 }
 
-func (hs *HealthServer) Check(context.Context, *proto.HealthCheckRequest) (*proto.HealthCheckResponse, error) {
+func (hs *Server) Check(context.Context, *proto.HealthCheckRequest) (*proto.HealthCheckResponse, error) {
 	return &proto.HealthCheckResponse{
 		Status: proto.HealthCheckResponse_SERVING,
 	}, nil
 }
 
-func (hs *HealthServer) Watch(context.Context, *proto.HealthCheckRequest) (*proto.HealthCheckResponse, error) {
+func (hs *Server) Watch(context.Context, *proto.HealthCheckRequest) (*proto.HealthCheckResponse, error) {
 	return &proto.HealthCheckResponse{
 		Status: proto.HealthCheckResponse_SERVING,
 	}, nil

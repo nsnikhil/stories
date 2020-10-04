@@ -79,5 +79,4 @@ func NewConfig() Config {
 		logConfig:        newLogConfig(),
 		logFileConfig:    newLogFileConfig(),
 	}
-
 }

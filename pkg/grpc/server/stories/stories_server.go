@@ -6,15 +6,14 @@ import (
 	"github.com/nsnikhil/stories/pkg/story/service"
 )
 
-//goland:noinspection ALL
-type StoriesServer struct {
+type Server struct {
 	proto.UnimplementedStoriesApiServer
 	cfg config.StoryConfig
 	svc service.StoryService
 }
 
-func NewStoriesServer(cfg config.StoryConfig, svc service.StoryService) *StoriesServer {
-	return &StoriesServer{
+func NewStoriesServer(cfg config.StoryConfig, svc service.StoryService) *Server {
+	return &Server{
 		cfg: cfg,
 		svc: svc,
 	}

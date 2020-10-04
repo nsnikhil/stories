@@ -92,6 +92,7 @@ func (b *StoryBuilder) SetID(id string) *StoryBuilder {
 	}
 
 	b.id = id
+
 	return b
 }
 
