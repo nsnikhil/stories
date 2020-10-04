@@ -77,6 +77,30 @@ func TestRouter(t *testing.T) {
 				return resp.Code
 			},
 		},
+		{
+			name: "test most viewed stories route",
+			actualResult: func() int {
+				resp := httptest.NewRecorder()
+				req, err := http.NewRequest(http.MethodPost, "/story/most-viewed", nil)
+				require.NoError(t, err)
+
+				r.ServeHTTP(resp, req)
+
+				return resp.Code
+			},
+		},
+		{
+			name: "test top rated stories route",
+			actualResult: func() int {
+				resp := httptest.NewRecorder()
+				req, err := http.NewRequest(http.MethodPost, "/story/top-rated", nil)
+				require.NoError(t, err)
+
+				r.ServeHTTP(resp, req)
+
+				return resp.Code
+			},
+		},
 	}
 
 	for _, testCase := range testCases {

@@ -18,16 +18,20 @@ import (
 const (
 	pingAPI = "ping"
 
-	addAPI    = "add"
-	getAPI    = "get"
-	deleteAPI = "delete"
+	addAPI        = "add"
+	getAPI        = "get"
+	deleteAPI     = "delete"
+	mostViewedAPI = "mostViewed"
+	topRatedAPI   = "topRated"
 
 	pingPath = "/ping"
 
-	storyPath  = "/story"
-	addPath    = "/add"
-	getPath    = "/get"
-	deletePath = "/delete"
+	storyPath      = "/story"
+	addPath        = "/add"
+	getPath        = "/get"
+	deletePath     = "/delete"
+	mostViewedPath = "/most-viewed"
+	topRatedPath   = "/top-rated"
 
 	metricPath = "/metrics"
 )
@@ -53,11 +57,15 @@ func addStoryRoutes(cfg config.StoryConfig, lgr *zap.Logger, pr reporters.Promet
 	ah := handler.NewAddHandler(cfg, svc)
 	gh := handler.NewGetStoryHandler(svc)
 	dh := handler.NewDeleteStoryHandler(svc)
+	mvh := handler.NewGetMostViewedStoriesHandler(svc)
+	trh := handler.NewGetTopRatedStoriesHandler(svc)
 
 	r.Route(storyPath, func(r chi.Router) {
 		r.Post(addPath, withMiddlewares(lgr, pr, addAPI, mdl.WithError(ah.AddStory)))
 		r.Get(getPath, withMiddlewares(lgr, pr, getAPI, mdl.WithError(gh.GetStory)))
 		r.Delete(deletePath, withMiddlewares(lgr, pr, deleteAPI, mdl.WithError(dh.DeleteStory)))
+		r.Get(mostViewedPath, withMiddlewares(lgr, pr, mostViewedAPI, mdl.WithError(mvh.GetMostViewedStories)))
+		r.Get(topRatedPath, withMiddlewares(lgr, pr, topRatedAPI, mdl.WithError(trh.GetTopRatedStories)))
 	})
 }
 
