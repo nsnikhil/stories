@@ -1,6 +1,6 @@
 package liberr
 
 const (
-	validationError = "usx0001"
-	internalError   = "usx0010"
+	validationError = "STx0001"
+	internalError   = "STx0010"
 )

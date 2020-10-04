@@ -72,7 +72,7 @@ func TestAddStory(t *testing.T) {
 				return w.Body.String(), w.Code
 			},
 			expectedCode:   http.StatusBadRequest,
-			expectedResult: "{\"error\":{\"code\":\"usx0001\",\"message\":\"unexpected end of JSON input\"},\"success\":false}",
+			expectedResult: "{\"error\":{\"code\":\"STx0001\",\"message\":\"unexpected end of JSON input\"},\"success\":false}",
 		},
 		{
 			name: "test add story failure when title is empty",
@@ -95,7 +95,7 @@ func TestAddStory(t *testing.T) {
 				return w.Body.String(), w.Code
 			},
 			expectedCode:   http.StatusBadRequest,
-			expectedResult: "{\"error\":{\"code\":\"usx0001\",\"message\":\"title cannot be empty\"},\"success\":false}",
+			expectedResult: "{\"error\":{\"code\":\"STx0001\",\"message\":\"title cannot be empty\"},\"success\":false}",
 		},
 		{
 			name: "test add story failure when body is empty",
@@ -118,7 +118,7 @@ func TestAddStory(t *testing.T) {
 				return w.Body.String(), w.Code
 			},
 			expectedCode:   http.StatusBadRequest,
-			expectedResult: "{\"error\":{\"code\":\"usx0001\",\"message\":\"body cannot be empty\"},\"success\":false}",
+			expectedResult: "{\"error\":{\"code\":\"STx0001\",\"message\":\"body cannot be empty\"},\"success\":false}",
 		},
 		{
 			name: "test add story failure when svc call fails",
@@ -151,7 +151,7 @@ func TestAddStory(t *testing.T) {
 				return w.Body.String(), w.Code
 			},
 			expectedCode:   http.StatusInternalServerError,
-			expectedResult: "{\"error\":{\"code\":\"usx0010\",\"message\":\"failed to add story\"},\"success\":false}",
+			expectedResult: "{\"error\":{\"code\":\"STx0010\",\"message\":\"failed to add story\"},\"success\":false}",
 		},
 	}
 

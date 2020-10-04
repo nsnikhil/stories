@@ -56,7 +56,7 @@ func TestWithErrorHandling(t *testing.T) {
 
 				return w.Body.String(), w.Code
 			},
-			expectedResult: "{\"error\":{\"code\":\"usx0010\",\"message\":\"some random error\"},\"success\":false}",
+			expectedResult: "{\"error\":{\"code\":\"STx0010\",\"message\":\"some random error\"},\"success\":false}",
 			expectedCode:   http.StatusInternalServerError,
 		},
 		{
