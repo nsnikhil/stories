@@ -42,10 +42,34 @@ func TestRouter(t *testing.T) {
 			},
 		},
 		{
-			name: "test add route",
+			name: "test add story route",
 			actualResult: func() int {
 				resp := httptest.NewRecorder()
 				req, err := http.NewRequest(http.MethodPost, "/story/add", nil)
+				require.NoError(t, err)
+
+				r.ServeHTTP(resp, req)
+
+				return resp.Code
+			},
+		},
+		{
+			name: "test get story route",
+			actualResult: func() int {
+				resp := httptest.NewRecorder()
+				req, err := http.NewRequest(http.MethodPost, "/story/get", nil)
+				require.NoError(t, err)
+
+				r.ServeHTTP(resp, req)
+
+				return resp.Code
+			},
+		},
+		{
+			name: "test delete story route",
+			actualResult: func() int {
+				resp := httptest.NewRecorder()
+				req, err := http.NewRequest(http.MethodPost, "/story/delete", nil)
 				require.NoError(t, err)
 
 				r.ServeHTTP(resp, req)

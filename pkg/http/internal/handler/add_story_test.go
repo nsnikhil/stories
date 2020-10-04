@@ -52,7 +52,7 @@ func TestAddStory(t *testing.T) {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodPost, "/story/add", bytes.NewBuffer(b))
 
-				mdl.WithError(ah.Add)(w, r)
+				mdl.WithError(ah.AddStory)(w, r)
 
 				return w.Body.String(), w.Code
 			},
@@ -67,7 +67,7 @@ func TestAddStory(t *testing.T) {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodPost, "/story/add", nil)
 
-				mdl.WithError(ah.Add)(w, r)
+				mdl.WithError(ah.AddStory)(w, r)
 
 				return w.Body.String(), w.Code
 			},
@@ -90,7 +90,7 @@ func TestAddStory(t *testing.T) {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodPost, "/story/add", bytes.NewBuffer(b))
 
-				mdl.WithError(ah.Add)(w, r)
+				mdl.WithError(ah.AddStory)(w, r)
 
 				return w.Body.String(), w.Code
 			},
@@ -113,7 +113,7 @@ func TestAddStory(t *testing.T) {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodPost, "/story/add", bytes.NewBuffer(b))
 
-				mdl.WithError(ah.Add)(w, r)
+				mdl.WithError(ah.AddStory)(w, r)
 
 				return w.Body.String(), w.Code
 			},
@@ -146,7 +146,7 @@ func TestAddStory(t *testing.T) {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodPost, "/story/add", bytes.NewBuffer(b))
 
-				mdl.WithError(ah.Add)(w, r)
+				mdl.WithError(ah.AddStory)(w, r)
 
 				return w.Body.String(), w.Code
 			},

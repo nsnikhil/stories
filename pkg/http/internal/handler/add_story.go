@@ -10,12 +10,12 @@ import (
 	"net/http"
 )
 
-type AddHandler struct {
+type AddStoryHandler struct {
 	cfg config.StoryConfig
 	svc service.StoryService
 }
 
-func (ash *AddHandler) Add(resp http.ResponseWriter, req *http.Request) error {
+func (ash *AddStoryHandler) AddStory(resp http.ResponseWriter, req *http.Request) error {
 	var data contract.AddStoryRequest
 	err := util.ParseRequest(req, &data)
 	if err != nil {
@@ -40,8 +40,8 @@ func (ash *AddHandler) Add(resp http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 
-func NewAddHandler(cfg config.StoryConfig, svc service.StoryService) *AddHandler {
-	return &AddHandler{
+func NewAddHandler(cfg config.StoryConfig, svc service.StoryService) *AddStoryHandler {
+	return &AddStoryHandler{
 		cfg: cfg,
 		svc: svc,
 	}

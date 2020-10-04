@@ -17,12 +17,17 @@ import (
 
 const (
 	pingAPI = "ping"
-	addAPI  = "add"
+
+	addAPI    = "add"
+	getAPI    = "get"
+	deleteAPI = "delete"
 
 	pingPath = "/ping"
 
-	storyPath = "/story"
-	addPath   = "/add"
+	storyPath  = "/story"
+	addPath    = "/add"
+	getPath    = "/get"
+	deletePath = "/delete"
 
 	metricPath = "/metrics"
 )
@@ -37,16 +42,23 @@ func getChiRouter(cfg config.StoryConfig, lgr *zap.Logger, newRelic *newrelic.Ap
 	r.Use(nrgorilla.Middleware(newRelic))
 
 	r.Get(pingPath, withMiddlewares(lgr, pr, pingAPI, handler.PingHandler()))
-
-	ah := handler.NewAddHandler(cfg, svc)
-
-	r.Route(storyPath, func(r chi.Router) {
-		r.Post(addPath, withMiddlewares(lgr, pr, addAPI, mdl.WithError(ah.Add)))
-	})
-
 	r.Handle(metricPath, promhttp.Handler())
 
+	addStoryRoutes(cfg, lgr, pr, svc, r)
+
 	return r
+}
+
+func addStoryRoutes(cfg config.StoryConfig, lgr *zap.Logger, pr reporters.Prometheus, svc service.StoryService, r chi.Router) {
+	ah := handler.NewAddHandler(cfg, svc)
+	gh := handler.NewGetStoryHandler(svc)
+	dh := handler.NewDeleteStoryHandler(svc)
+
+	r.Route(storyPath, func(r chi.Router) {
+		r.Post(addPath, withMiddlewares(lgr, pr, addAPI, mdl.WithError(ah.AddStory)))
+		r.Get(getPath, withMiddlewares(lgr, pr, getAPI, mdl.WithError(gh.GetStory)))
+		r.Delete(deletePath, withMiddlewares(lgr, pr, deleteAPI, mdl.WithError(dh.DeleteStory)))
+	})
 }
 
 func withMiddlewares(lgr *zap.Logger, prometheus reporters.Prometheus, api string, handler func(resp http.ResponseWriter, req *http.Request)) http.HandlerFunc {
