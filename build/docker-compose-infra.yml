@@ -1,0 +1,24 @@
+version: '3.7'
+
+services:
+
+  db:
+    image: postgres:alpine
+    restart: always
+    environment:
+      POSTGRES_DB: stories_db
+      POSTGRES_USER: stories_user
+      POSTGRES_PASSWORD: stories_password
+    networks:
+      - storiesnetwork
+    ports:
+      - 8432:5432
+    volumes:
+      - ../pkg/store/migrations/:/docker-entrypoint-initdb.d/
+
+  redis:
+    image: redis:latest
+    networks:
+      - storiesnetwork
+    ports:
+      - 8379:6379

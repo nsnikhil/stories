@@ -24,7 +24,7 @@ func TestServerStart(t *testing.T) {
 	//TODO REMOVE SLEEP
 	time.Sleep(time.Millisecond)
 
-	resp, err := http.Get("http://127.0.0.1:8081/ping")
+	resp, err := http.Get("http://127.0.0.1:8080/ping")
 	require.NoError(t, err)
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)

@@ -1,8 +1,10 @@
 package server
 
 import (
+	"fmt"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
+	"github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/newrelic/go-agent/v3/integrations/nrgrpc"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/nsnikhil/stories-proto/proto"
@@ -12,11 +14,13 @@ import (
 	"github.com/nsnikhil/stories/pkg/grpc/server/stories"
 	reporters "github.com/nsnikhil/stories/pkg/reporting"
 	"github.com/nsnikhil/stories/pkg/story/service"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 	"log"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -56,6 +60,8 @@ func (as *appServer) Start() {
 	proto.RegisterStoriesApiServer(grpcServer, storiesServer)
 	proto.RegisterHealthServer(grpcServer, healthServer)
 
+	setUpPrometheus(as.cfg.GRPCServerConfig(), grpcServer)
+
 	listener, err := net.Listen("tcp", as.cfg.GRPCServerConfig().Address())
 	if err != nil {
 		as.lgr.Sugar().Fatalf("failed to listen: %v", err)
@@ -71,6 +77,18 @@ func (as *appServer) Start() {
 	waitForShutdown(grpcServer)
 }
 
+func setUpPrometheus(cfg config.GRPCServerConfig, gs *grpc.Server) {
+	grpc_prometheus.Register(gs)
+
+	http.Handle("/metrics", promhttp.Handler())
+
+	go func() {
+		if err := http.ListenAndServe(cfg.PrometheusHTTPAddress(), nil); err != nil {
+			fmt.Println(err.Error())
+		}
+	}()
+}
+
 func newGrpcServer(as *appServer) *grpc.Server {
 	return grpc.NewServer(
 		grpc.KeepaliveParams(
@@ -83,12 +101,14 @@ func newGrpcServer(as *appServer) *grpc.Server {
 				middleware.WithPrometheus(as.pr),
 				middleware.WithErrorLogger(as.lgr),
 				grpc_recovery.UnaryServerInterceptor(),
+				grpc_prometheus.UnaryServerInterceptor,
 				nrgrpc.UnaryServerInterceptor(as.nr),
 			),
 		),
 		grpc.StreamInterceptor(
 			grpc_middleware.ChainStreamServer(
 				grpc_recovery.StreamServerInterceptor(),
+				grpc_prometheus.StreamServerInterceptor,
 				nrgrpc.StreamServerInterceptor(as.nr),
 			),
 		),

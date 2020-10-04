@@ -6,7 +6,7 @@ import (
 
 type HTTPServerConfig struct {
 	host             string
-	port             string
+	port             int
 	readTimoutInSec  int
 	writeTimoutInSec int
 }
@@ -14,14 +14,14 @@ type HTTPServerConfig struct {
 func newHTTPServerConfig() HTTPServerConfig {
 	return HTTPServerConfig{
 		host:             getString("HTTP_SERVER_HOST"),
-		port:             getString("HTTP_SERVER_PORT"),
+		port:             getInt("HTTP_SERVER_PORT"),
 		readTimoutInSec:  getInt("HTTP_SERVER_READ_TIMEOUT_IN_SEC"),
 		writeTimoutInSec: getInt("HTTP_SERVER_WRITE_TIMEOUT_IN_SEC"),
 	}
 }
 
 func (sc HTTPServerConfig) Address() string {
-	return fmt.Sprintf(":%s", sc.port)
+	return fmt.Sprintf(":%d", sc.port)
 }
 
 func (sc HTTPServerConfig) ReadTimeout() int {

@@ -5,21 +5,28 @@ import (
 )
 
 type GRPCServerConfig struct {
-	host                           string
-	port                           string
+	host string
+	port int
+	// TODO: REMOVE THIS FROM HERE
+	prometheusHttpServerPort       int
 	idleConnectionTimeoutInMinutes int
 }
 
 func newGRPCServerConfig() GRPCServerConfig {
 	return GRPCServerConfig{
 		host:                           getString("GRPC_SERVER_HOST"),
-		port:                           getString("GRPC_SERVER_PORT"),
+		port:                           getInt("GRPC_SERVER_PORT"),
+		prometheusHttpServerPort:       getInt("GRPC_PROMETHEUS_HTTP_PORT"),
 		idleConnectionTimeoutInMinutes: getInt("GRPC_SERVER_IDLE_CONNECTION_TIMEOUT_IN_MINUTES"),
 	}
 }
 
 func (sc GRPCServerConfig) Address() string {
-	return fmt.Sprintf(":%s", sc.port)
+	return fmt.Sprintf(":%d", sc.port)
+}
+
+func (sc GRPCServerConfig) PrometheusHTTPAddress() string {
+	return fmt.Sprintf(":%d", sc.prometheusHttpServerPort)
 }
 
 func (sc GRPCServerConfig) IdleConnectionTimeoutInMinutes() int {
