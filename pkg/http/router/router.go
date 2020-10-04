@@ -23,6 +23,8 @@ const (
 	deleteAPI     = "delete"
 	mostViewedAPI = "mostViewed"
 	topRatedAPI   = "topRated"
+	searchAPI     = "search"
+	updateAPI     = "update"
 
 	pingPath = "/ping"
 
@@ -32,6 +34,8 @@ const (
 	deletePath     = "/delete"
 	mostViewedPath = "/most-viewed"
 	topRatedPath   = "/top-rated"
+	searchPath     = "/search"
+	updatePath     = "/update"
 
 	metricPath = "/metrics"
 )
@@ -59,6 +63,8 @@ func addStoryRoutes(cfg config.StoryConfig, lgr *zap.Logger, pr reporters.Promet
 	dh := handler.NewDeleteStoryHandler(svc)
 	mvh := handler.NewGetMostViewedStoriesHandler(svc)
 	trh := handler.NewGetTopRatedStoriesHandler(svc)
+	sh := handler.NewSearchStoriesHandler(svc)
+	uh := handler.NewUpdateStoryHandler(cfg, svc)
 
 	r.Route(storyPath, func(r chi.Router) {
 		r.Post(addPath, withMiddlewares(lgr, pr, addAPI, mdl.WithError(ah.AddStory)))
@@ -66,6 +72,8 @@ func addStoryRoutes(cfg config.StoryConfig, lgr *zap.Logger, pr reporters.Promet
 		r.Delete(deletePath, withMiddlewares(lgr, pr, deleteAPI, mdl.WithError(dh.DeleteStory)))
 		r.Get(mostViewedPath, withMiddlewares(lgr, pr, mostViewedAPI, mdl.WithError(mvh.GetMostViewedStories)))
 		r.Get(topRatedPath, withMiddlewares(lgr, pr, topRatedAPI, mdl.WithError(trh.GetTopRatedStories)))
+		r.Get(searchPath, withMiddlewares(lgr, pr, searchAPI, mdl.WithError(sh.SearchStories)))
+		r.Patch(updatePath, withMiddlewares(lgr, pr, updateAPI, mdl.WithError(uh.UpdateStory)))
 	})
 }
 

@@ -101,6 +101,30 @@ func TestRouter(t *testing.T) {
 				return resp.Code
 			},
 		},
+		{
+			name: "test search stories route",
+			actualResult: func() int {
+				resp := httptest.NewRecorder()
+				req, err := http.NewRequest(http.MethodPost, "/story/search", nil)
+				require.NoError(t, err)
+
+				r.ServeHTTP(resp, req)
+
+				return resp.Code
+			},
+		},
+		{
+			name: "test update story route",
+			actualResult: func() int {
+				resp := httptest.NewRecorder()
+				req, err := http.NewRequest(http.MethodPost, "/story/update", nil)
+				require.NoError(t, err)
+
+				r.ServeHTTP(resp, req)
+
+				return resp.Code
+			},
+		},
 	}
 
 	for _, testCase := range testCases {
