@@ -78,7 +78,7 @@ func initLogger(cfg config.Config) *zap.Logger {
 	)
 }
 
-func getWriters(cfg config.Config, ) []io.Writer {
+func getWriters(cfg config.Config) []io.Writer {
 	logSinkMap := map[string]io.Writer{
 		"stdout": os.Stdout,
 		"file":   reporters.NewExternalLogFile(cfg.LogFileConfig()),
