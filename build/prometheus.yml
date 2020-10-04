@@ -17,15 +17,10 @@ scrape_configs:
     static_configs:
       - targets: ['prometheus:9090']
 
-  - job_name: 'cadvisor'
-    scrape_interval: 5s
-    static_configs:
-      - targets: [ 'cadvisor:8082' ]
-
   - job_name: 'stories'
     scrape_interval: 5s
     static_configs:
-      - targets: ['stories:8080']
+      - targets: ['stories:8090']
 
 
 

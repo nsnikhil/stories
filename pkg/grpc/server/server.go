@@ -60,7 +60,7 @@ func (as *appServer) Start() {
 	proto.RegisterStoriesApiServer(grpcServer, storiesServer)
 	proto.RegisterHealthServer(grpcServer, healthServer)
 
-	setUpPrometheus(as.cfg.GRPCServerConfig(), grpcServer)
+	setUpPrometheus(as.cfg.GRPCServerConfig(), as.lgr, grpcServer)
 
 	listener, err := net.Listen("tcp", as.cfg.GRPCServerConfig().Address())
 	if err != nil {
@@ -77,11 +77,12 @@ func (as *appServer) Start() {
 	waitForShutdown(grpcServer)
 }
 
-func setUpPrometheus(cfg config.GRPCServerConfig, gs *grpc.Server) {
+func setUpPrometheus(cfg config.GRPCServerConfig, lgr *zap.Logger, gs *grpc.Server) {
 	grpc_prometheus.Register(gs)
 
 	http.Handle("/metrics", promhttp.Handler())
 
+	lgr.Sugar().Infof("exposing prometheus metrics on %s/metrics", cfg.PrometheusHTTPAddress())
 	go func() {
 		if err := http.ListenAndServe(cfg.PrometheusHTTPAddress(), nil); err != nil {
 			fmt.Println(err.Error())
