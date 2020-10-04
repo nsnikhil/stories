@@ -43,7 +43,7 @@ services:
       - prometheus
 
   stories:
-    image: nsnikhil/stories:0.2
+    image: nsnikhil/stories:0.3
     restart: always
     ports:
       - 8080:8080
