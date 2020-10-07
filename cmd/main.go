@@ -1,12 +1,32 @@
 package main
 
-import "os"
+import (
+	"flag"
+	"fmt"
+	"log"
+)
+
+const (
+	configFileKey     = "configFile"
+	defaultConfigFile = "local.env"
+	configFileUsage   = ""
+)
 
 func main() {
-	args := os.Args
-	if len(args) < 2 {
-		panic("please provide a command")
+	var configFile string
+	flag.StringVar(&configFile, configFileKey, defaultConfigFile, configFileUsage)
+	flag.Parse()
+
+	if len(configFile) == 0 {
+		log.Fatal("please provide config file")
 	}
 
-	execute(args[1])
+	args := flag.Args()
+	if len(args) < 1 {
+		log.Fatal("please provide a command")
+	}
+
+	fmt.Println(flag.Args())
+
+	execute(flag.Args()[0], configFile)
 }

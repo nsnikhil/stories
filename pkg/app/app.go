@@ -1,9 +1,9 @@
 package app
 
-func StartGRPCServer() {
-	initGRPCServer().Start()
+func StartGRPCServer(configFile string) {
+	initGRPCServer(configFile).Start()
 }
 
-func StartHTTPServer() {
-	initHTTPServer().Start()
+func StartHTTPServer(configFile string) {
+	initHTTPServer(configFile).Start()
 }

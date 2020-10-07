@@ -13,8 +13,8 @@ const (
 	rollbackCommand  = "rollback"
 )
 
-func commands() map[string]func() {
-	return map[string]func(){
+func commands() map[string]func(configFile string) {
+	return map[string]func(configFile string){
 		grpcServeCommand: app.StartGRPCServer,
 		httpServeCommand: app.StartHTTPServer,
 		migrateCommand:   store.RunMigrations,
@@ -22,11 +22,11 @@ func commands() map[string]func() {
 	}
 }
 
-func execute(cmd string) {
+func execute(cmd string, configFile string) {
 	run, ok := commands()[cmd]
 	if !ok {
 		log.Fatal("invalid command")
 	}
 
-	run()
+	run(configFile)
 }

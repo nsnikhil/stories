@@ -15,7 +15,7 @@ import (
 )
 
 func TestRouter(t *testing.T) {
-	cfg := config.NewConfig()
+	cfg := config.NewConfig("../../../local.env")
 
 	r := router.NewRouter(
 		cfg.StoryConfig(),

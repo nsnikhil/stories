@@ -17,8 +17,8 @@ const (
 	databaseName = "postgres"
 )
 
-func RunMigrations() {
-	newMigrate, err := newMigrate()
+func RunMigrations(configFile string) {
+	newMigrate, err := newMigrate(configFile)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -33,8 +33,8 @@ func RunMigrations() {
 	}
 }
 
-func RollBackMigrations() {
-	newMigrate, err := newMigrate()
+func RollBackMigrations(configFile string) {
+	newMigrate, err := newMigrate(configFile)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -47,8 +47,8 @@ func RollBackMigrations() {
 	}
 }
 
-func newMigrate() (*migrate.Migrate, error) {
-	cfg := config.NewConfig()
+func newMigrate(configFile string) (*migrate.Migrate, error) {
+	cfg := config.NewConfig(configFile)
 
 	dbHandler := NewDBHandler(cfg.DatabaseConfig())
 

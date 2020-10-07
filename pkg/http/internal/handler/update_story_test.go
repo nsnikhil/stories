@@ -19,7 +19,7 @@ import (
 )
 
 func TestUpdateStory(t *testing.T) {
-	cfg := config.NewConfig()
+	cfg := config.NewConfig("../../../../local.env")
 
 	testCases := []struct {
 		name           string

@@ -4,6 +4,11 @@ APP_COMMIT:=$(shell git rev-parse HEAD)
 APP_EXECUTABLE="./out/$(APP)"
 ALL_PACKAGES=$(shell go list ./... | grep -v "vendor")
 
+GRPC_SERVE_COMMAND=grpc-serve
+HTTP_SERVE_COMMAND=http-serve
+MIGRATE_COMMAND=migrate
+ROLLBACK_COMMAND=rollback
+
 setup: copy-config init-db migrate test
 
 init-db:
@@ -34,10 +39,10 @@ compile:
 build: deps compile
 
 grpc-serve: build
-	$(APP_EXECUTABLE) grpc-serve
+	$(APP_EXECUTABLE) -configFile=$(configFile) $(GRPC_SERVE_COMMAND)
 
 http-serve: build
-	$(APP_EXECUTABLE) http-serve
+	$(APP_EXECUTABLE) -configFile=$(configFile) $(HTTP_SERVE_COMMAND)
 
 docker-build:
 	docker build -t nsnikhil/$(APP):$(APP_VERSION) .
@@ -65,7 +70,7 @@ test-cover-html:
 	go tool cover -html=out/coverage.out
 
 migrate: build
-	$(APP_EXECUTABLE) migrate
+	$(APP_EXECUTABLE) $(MIGRATE_COMMAND)
 
 rollback: build
-	$(APP_EXECUTABLE) rollback
+	$(APP_EXECUTABLE) $(ROLLBACK_COMMAND)

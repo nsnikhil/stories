@@ -53,15 +53,9 @@ func (c Config) StoryConfig() StoryConfig {
 	return c.storyConfig
 }
 
-func NewConfig() Config {
+func NewConfig(configFile string) Config {
 	viper.AutomaticEnv()
-	viper.SetConfigName("local")
-	viper.SetConfigType("env")
-	viper.AddConfigPath("./")
-	viper.AddConfigPath("./../")
-	viper.AddConfigPath("./../../")
-	viper.AddConfigPath("./../../../")
-	viper.AddConfigPath("./../../../../")
+	viper.SetConfigFile(configFile)
 
 	err := viper.ReadInConfig()
 	if err != nil {

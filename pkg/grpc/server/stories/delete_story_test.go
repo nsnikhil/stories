@@ -12,7 +12,7 @@ import (
 )
 
 func TestStoriesServerDeleteStory(t *testing.T) {
-	cfg := config.NewConfig().StoryConfig()
+	cfg := config.NewConfig("../../../../local.env").StoryConfig()
 
 	testCases := []struct {
 		name           string

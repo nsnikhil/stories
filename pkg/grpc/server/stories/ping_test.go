@@ -11,9 +11,9 @@ import (
 )
 
 func TestStoriesPing(t *testing.T) {
-	cfg := config.NewConfig()
+	cfg := config.NewConfig("../../../../local.env").StoryConfig()
 
-	server := stories.NewStoriesServer(cfg.StoryConfig(), nil)
+	server := stories.NewStoriesServer(cfg, nil)
 	resp, err := server.Ping(context.Background(), &proto.PingRequest{})
 
 	require.NoError(t, err)

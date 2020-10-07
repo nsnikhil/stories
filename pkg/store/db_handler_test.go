@@ -17,7 +17,7 @@ func TestGetDB(t *testing.T) {
 		{
 			name: "test get db success",
 			actualResult: func() error {
-				handler := store.NewDBHandler(config.NewConfig().DatabaseConfig())
+				handler := store.NewDBHandler(config.NewConfig("../../local.env").DatabaseConfig())
 				_, err := handler.GetDB()
 				return err
 			},

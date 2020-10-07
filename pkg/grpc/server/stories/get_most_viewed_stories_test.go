@@ -15,7 +15,7 @@ import (
 )
 
 func TestStoriesServerGetMostViewedStories(t *testing.T) {
-	cfg := config.NewConfig().StoryConfig()
+	cfg := config.NewConfig("../../../../local.env").StoryConfig()
 
 	createdAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
 	updatedAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)

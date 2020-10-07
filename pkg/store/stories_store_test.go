@@ -689,7 +689,7 @@ func truncate(t *testing.T, db *sql.DB) {
 }
 
 func getDB(t *testing.T) *sql.DB {
-	cfg := config.NewConfig().DatabaseConfig()
+	cfg := config.NewConfig("../../local.env").DatabaseConfig()
 
 	handler := store.NewDBHandler(cfg)
 

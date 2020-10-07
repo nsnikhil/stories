@@ -17,8 +17,8 @@ import (
 )
 
 //TODO: COMBINE INIT GRPC AND INIT HTTP SERVER
-func initGRPCServer() grpcserver.Server {
-	cfg := config.NewConfig()
+func initGRPCServer(configFile string) grpcserver.Server {
+	cfg := config.NewConfig(configFile)
 
 	lgr := initLogger(cfg)
 	pr := reporters.NewPrometheus()
@@ -30,8 +30,8 @@ func initGRPCServer() grpcserver.Server {
 }
 
 //TODO: COMBINE INIT GRPC AND INIT HTTP SERVER
-func initHTTPServer() httpserver.Server {
-	cfg := config.NewConfig()
+func initHTTPServer(configFile string) httpserver.Server {
+	cfg := config.NewConfig(configFile)
 
 	lgr := initLogger(cfg)
 	pr := reporters.NewPrometheus()
