@@ -16,6 +16,7 @@ func WithReqRespLogger(lgr *zap.Logger) func(ctx context.Context, req interface{
 		h, err := handler(ctx, req)
 		if err != nil {
 			lgr.Sugar().Debug(err)
+			return h, err
 		}
 
 		lgr.Sugar().Debug(h)
