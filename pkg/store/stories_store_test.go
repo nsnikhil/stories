@@ -201,7 +201,12 @@ func TestGetStories(t *testing.T) {
 			res, err := testCase.actualResult()
 			expRes := testCase.expectedResult()
 
-			assert.Equal(t, testCase.expectedError, err)
+			if testCase.expectedError != nil {
+				assert.Equal(t, testCase.expectedError.Error(), err.Error())
+			} else {
+				assert.Nil(t, err)
+			}
+
 			assert.Equal(t, len(expRes), len(res))
 
 			sz := len(res)
@@ -307,7 +312,12 @@ func TestStoriesStoreUpdateStory(t *testing.T) {
 			res, c, err := testCase.actualResult()
 			expRes := testCase.expectedResult()
 
-			assert.Equal(t, testCase.expectedError, err)
+			if testCase.expectedError != nil {
+				assert.Equal(t, testCase.expectedError.Error(), err.Error())
+			} else {
+				assert.Nil(t, err)
+			}
+
 			assert.Equal(t, testCase.expectedCount, c)
 
 			if expRes != nil {
@@ -366,7 +376,12 @@ func TestStoriesStoreDeleteStory(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			c, err := testCase.actualResult()
 
-			assert.Equal(t, testCase.expectedError, err)
+			if testCase.expectedError != nil {
+				assert.Equal(t, testCase.expectedError.Error(), err.Error())
+			} else {
+				assert.Nil(t, err)
+			}
+
 			assert.Equal(t, testCase.expectedCount, c)
 		})
 	}
@@ -510,7 +525,12 @@ func TestStoriesStoreGetMostViewsStories(t *testing.T) {
 			res, err := testCase.actualResult()
 			expRes := testCase.expectedResult()
 
-			assert.Equal(t, testCase.expectedError, err)
+			if testCase.expectedError != nil {
+				assert.Equal(t, testCase.expectedError.Error(), err.Error())
+			} else {
+				assert.Nil(t, err)
+			}
+
 			assert.Equal(t, len(expRes), len(res))
 
 			sz := len(res)
@@ -661,7 +681,12 @@ func TestStoriesStoreGetTopRatedStories(t *testing.T) {
 			res, err := testCase.actualResult()
 			expRes := testCase.expectedResult()
 
-			assert.Equal(t, testCase.expectedError, err)
+			if testCase.expectedError != nil {
+				assert.Equal(t, testCase.expectedError.Error(), err.Error())
+			} else {
+				assert.Nil(t, err)
+			}
+
 			assert.Equal(t, len(expRes), len(res))
 
 			sz := len(res)

@@ -7,6 +7,7 @@ import (
 	"github.com/nsnikhil/stories/pkg/http/contract"
 	"github.com/nsnikhil/stories/pkg/http/internal/handler"
 	mdl "github.com/nsnikhil/stories/pkg/http/internal/middleware"
+	"github.com/nsnikhil/stories/pkg/liberr"
 	"github.com/nsnikhil/stories/pkg/story/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -62,7 +63,7 @@ func TestDeleteStory(t *testing.T) {
 				return w.Body.String(), w.Code
 			},
 			expectedCode:   http.StatusBadRequest,
-			expectedResult: "{\"error\":{\"code\":\"STx0001\",\"message\":\"unexpected end of JSON input\"},\"success\":false}",
+			expectedResult: "{\"error\":{\"message\":\"unexpected end of JSON input\"},\"success\":false}",
 		},
 		{
 			name: "test delete story failure when svc call fails",
@@ -77,7 +78,7 @@ func TestDeleteStory(t *testing.T) {
 				require.NoError(t, err)
 
 				ms := &service.MockStoriesService{}
-				ms.On("DeleteStory", id).Return(int64(0), errors.New("failed to delete story"))
+				ms.On("DeleteStory", id).Return(int64(0), liberr.WithArgs(liberr.SeverityError, errors.New("failed to delete story")))
 
 				dh := handler.NewDeleteStoryHandler(ms)
 
@@ -89,7 +90,7 @@ func TestDeleteStory(t *testing.T) {
 				return w.Body.String(), w.Code
 			},
 			expectedCode:   http.StatusInternalServerError,
-			expectedResult: "{\"error\":{\"code\":\"STx0010\",\"message\":\"failed to delete story\"},\"success\":false}",
+			expectedResult: "{\"error\":{\"message\":\"internal server error\"},\"success\":false}",
 		},
 	}
 

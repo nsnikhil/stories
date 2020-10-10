@@ -3,6 +3,7 @@ package model
 import (
 	"errors"
 	"fmt"
+	"github.com/nsnikhil/stories/pkg/liberr"
 	"regexp"
 	"time"
 )
@@ -185,7 +186,7 @@ func (b *StoryBuilder) SetUpdatedAt(updatedAt time.Time) *StoryBuilder {
 
 func (b *StoryBuilder) Build() (*Story, error) {
 	if b.err != nil {
-		return nil, b.err
+		return nil, liberr.WithArgs(liberr.SeverityError, liberr.ValidationError, liberr.Operation("StoryBuilder.Build"), b.err)
 	}
 
 	// TODO: FIX WHEN BUILD IS CALLED WITHOUT INVOKING SET TITLE AND SET BODY

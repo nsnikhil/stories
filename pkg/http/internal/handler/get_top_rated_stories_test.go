@@ -7,6 +7,7 @@ import (
 	"github.com/nsnikhil/stories/pkg/http/contract"
 	"github.com/nsnikhil/stories/pkg/http/internal/handler"
 	mdl "github.com/nsnikhil/stories/pkg/http/internal/middleware"
+	"github.com/nsnikhil/stories/pkg/liberr"
 	"github.com/nsnikhil/stories/pkg/story/model"
 	"github.com/nsnikhil/stories/pkg/story/service"
 	"github.com/stretchr/testify/assert"
@@ -81,7 +82,7 @@ func TestGetTopRatedStories(t *testing.T) {
 				return w.Body.String(), w.Code
 			},
 			expectedCode:   http.StatusBadRequest,
-			expectedResult: "{\"error\":{\"code\":\"STx0001\",\"message\":\"unexpected end of JSON input\"},\"success\":false}",
+			expectedResult: "{\"error\":{\"message\":\"unexpected end of JSON input\"},\"success\":false}",
 		},
 		{
 			name: "test get top rated stories failure when svc call fails",
@@ -100,7 +101,7 @@ func TestGetTopRatedStories(t *testing.T) {
 				r := httptest.NewRequest(http.MethodGet, "/story/top-rated", bytes.NewBuffer(b))
 
 				ms := &service.MockStoriesService{}
-				ms.On("GetTopRatedStories", o, l).Return([]model.Story{}, errors.New("failed to get top rated stories"))
+				ms.On("GetTopRatedStories", o, l).Return([]model.Story{}, liberr.WithArgs(liberr.SeverityError, errors.New("failed to get top rated stories")))
 
 				mvh := handler.NewGetTopRatedStoriesHandler(ms)
 
@@ -109,7 +110,7 @@ func TestGetTopRatedStories(t *testing.T) {
 				return w.Body.String(), w.Code
 			},
 			expectedCode:   http.StatusInternalServerError,
-			expectedResult: "{\"error\":{\"code\":\"STx0010\",\"message\":\"failed to get top rated stories\"},\"success\":false}",
+			expectedResult: "{\"error\":{\"message\":\"internal server error\"},\"success\":false}",
 		},
 	}
 

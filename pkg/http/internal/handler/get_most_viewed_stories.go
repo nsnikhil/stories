@@ -2,7 +2,6 @@ package handler
 
 import (
 	"github.com/nsnikhil/stories/pkg/http/contract"
-	"github.com/nsnikhil/stories/pkg/http/internal/liberr"
 	"github.com/nsnikhil/stories/pkg/http/internal/util"
 	"github.com/nsnikhil/stories/pkg/story/service"
 	"net/http"
@@ -16,12 +15,12 @@ func (gmh *GetMostViewedStoriesHandler) GetMostViewedStories(resp http.ResponseW
 	var data contract.MostViewedStoriesRequest
 	err := util.ParseRequest(req, &data)
 	if err != nil {
-		return liberr.ValidationError(err.Error())
+		return err
 	}
 
 	dss, err := gmh.svc.GetMostViewsStories(data.OffSet, data.Limit)
 	if err != nil {
-		return liberr.InternalError(err.Error())
+		return err
 	}
 
 	// TODO: UNIFY BELOW LOGIC WITH TOP RATED HANDLER

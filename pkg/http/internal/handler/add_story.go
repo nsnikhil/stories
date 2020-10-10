@@ -3,7 +3,6 @@ package handler
 import (
 	"github.com/nsnikhil/stories/pkg/config"
 	"github.com/nsnikhil/stories/pkg/http/contract"
-	"github.com/nsnikhil/stories/pkg/http/internal/liberr"
 	"github.com/nsnikhil/stories/pkg/http/internal/util"
 	"github.com/nsnikhil/stories/pkg/story/model"
 	"github.com/nsnikhil/stories/pkg/story/service"
@@ -19,7 +18,7 @@ func (ash *AddStoryHandler) AddStory(resp http.ResponseWriter, req *http.Request
 	var data contract.AddStoryRequest
 	err := util.ParseRequest(req, &data)
 	if err != nil {
-		return liberr.ValidationError(err.Error())
+		return err
 	}
 
 	st, err := model.NewStoryBuilder().
@@ -28,12 +27,12 @@ func (ash *AddStoryHandler) AddStory(resp http.ResponseWriter, req *http.Request
 		Build()
 
 	if err != nil {
-		return liberr.ValidationError(err.Error())
+		return err
 	}
 
 	err = ash.svc.AddStory(st)
 	if err != nil {
-		return liberr.InternalError(err.Error())
+		return err
 	}
 
 	util.WriteSuccessResponse(http.StatusCreated, contract.AddStoryResponse{Success: true}, resp)

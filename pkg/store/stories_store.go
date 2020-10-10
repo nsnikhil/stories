@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/nsnikhil/stories/pkg/liberr"
 	"github.com/nsnikhil/stories/pkg/story/model"
 	"regexp"
 )
@@ -37,14 +38,14 @@ func (dss *defaultStoriesStore) AddStory(st *model.Story) (string, error) {
 	var id string
 	err := dss.db.QueryRow(insertStory, st.GetTitle(), st.GetBody(), st.GetViewCount(), st.GetUpVotes(), st.GetDownVotes()).Scan(&id)
 	if err != nil {
-		return "", err
+		return "", liberr.WithArgs(liberr.Operation("AddStory.db.QueryRow"), liberr.InternalError, liberr.SeverityError, err)
 	}
 
 	return id, nil
 }
 
 func (dss *defaultStoriesStore) GetStories(storyIDs ...string) ([]model.Story, error) {
-	query, err := buildQuery(storyIDs...)
+	query, err := buildQuery(getStories, storyIDs...)
 	if err != nil {
 		return nil, err
 	}
@@ -53,20 +54,31 @@ func (dss *defaultStoriesStore) GetStories(storyIDs ...string) ([]model.Story, e
 }
 
 // TO PREVENT SQL INJECTION
-func buildQuery(id ...string) (string, error) {
-	buf := bytes.NewBufferString(getStories)
+func buildQuery(query string, id ...string) (string, error) {
+	buf := bytes.NewBufferString(query)
 	for i, v := range id {
 		if i > 0 {
-			buf.WriteString(",")
+			_, err := buf.WriteString(",")
+			if err != nil {
+				return "", liberr.WithArgs(liberr.Operation("buildQuery.buf.WriteString"), liberr.SeverityError, err)
+			}
 		}
 
 		if !isValidUUID(v) {
-			return "", fmt.Errorf("invalid uuid %s", v)
+			return "", liberr.WithArgs(liberr.Operation("buildQuery.isValidUUID"), liberr.SeverityError, fmt.Errorf("invalid uuid %s", v))
 		}
 
-		buf.WriteString(fmt.Sprintf("'%s'", v))
+		_, err := buf.WriteString(fmt.Sprintf("'%s'", v))
+		if err != nil {
+			return "", liberr.WithArgs(liberr.Operation("buildQuery.buf.WriteString"), liberr.SeverityError, err)
+		}
+
 	}
-	buf.WriteString(")")
+
+	_, err := buf.WriteString(")")
+	if err != nil {
+		return "", liberr.WithArgs(liberr.Operation("buildQuery.buf.WriteString"), liberr.SeverityError, err)
+	}
 
 	return buf.String(), nil
 }
@@ -97,7 +109,7 @@ func execQueryWithError(db *sql.DB, query string, errMsg string, args ...interfa
 	}
 
 	if ra == 0 {
-		return 0, errors.New(errMsg)
+		return 0, liberr.WithArgs(liberr.Operation("execQueryWithError"), liberr.SeverityError, errors.New(errMsg))
 	}
 
 	return ra, nil
@@ -106,12 +118,12 @@ func execQueryWithError(db *sql.DB, query string, errMsg string, args ...interfa
 func execQuery(db *sql.DB, query string, args ...interface{}) (int64, error) {
 	res, err := db.Exec(query, args...)
 	if err != nil {
-		return 0, err
+		return 0, liberr.WithArgs(liberr.Operation("execQuery.db.Exec"), liberr.SeverityError, err)
 	}
 
 	ra, err := res.RowsAffected()
 	if err != nil {
-		return 0, err
+		return 0, liberr.WithArgs(liberr.Operation("execQuery.res.RowsAffected"), liberr.SeverityError, err)
 	}
 
 	return ra, nil
@@ -121,7 +133,7 @@ func getRecords(db *sql.DB, query string, args ...interface{}) ([]model.Story, e
 	var stories []model.Story
 	rows, err := db.Query(query, args...)
 	if err != nil {
-		return nil, err
+		return nil, liberr.WithArgs(liberr.Operation("getRecords.db.Query"), liberr.SeverityError, err)
 	}
 
 	defer func() { _ = rows.Close() }()
@@ -136,14 +148,14 @@ func getRecords(db *sql.DB, query string, args ...interface{}) ([]model.Story, e
 		)
 
 		if err != nil {
-			return nil, err
+			return nil, liberr.WithArgs(liberr.Operation("getRecords.rows.Scan"), liberr.SeverityError, err)
 		}
 
 		stories = append(stories, story)
 	}
 
 	if len(stories) == 0 {
-		return nil, fmt.Errorf("no records found")
+		return nil, liberr.WithArgs(liberr.Operation("getRecords"), liberr.SeverityError, fmt.Errorf("no records found"))
 	}
 
 	return stories, nil

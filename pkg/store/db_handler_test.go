@@ -37,7 +37,7 @@ func TestGetDB(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			if testCase.expectedError == nil {
-				assert.Equal(t, testCase.expectedError, testCase.actualResult())
+				assert.Nil(t, testCase.actualResult())
 			} else {
 				assert.Equal(t, testCase.expectedError.Error(), testCase.actualResult().Error())
 			}

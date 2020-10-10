@@ -8,6 +8,7 @@ import (
 	"github.com/nsnikhil/stories/pkg/http/contract"
 	"github.com/nsnikhil/stories/pkg/http/internal/handler"
 	mdl "github.com/nsnikhil/stories/pkg/http/internal/middleware"
+	"github.com/nsnikhil/stories/pkg/liberr"
 	"github.com/nsnikhil/stories/pkg/story/model"
 	"github.com/nsnikhil/stories/pkg/story/service"
 	"github.com/stretchr/testify/assert"
@@ -72,7 +73,7 @@ func TestAddStory(t *testing.T) {
 				return w.Body.String(), w.Code
 			},
 			expectedCode:   http.StatusBadRequest,
-			expectedResult: "{\"error\":{\"code\":\"STx0001\",\"message\":\"unexpected end of JSON input\"},\"success\":false}",
+			expectedResult: "{\"error\":{\"message\":\"unexpected end of JSON input\"},\"success\":false}",
 		},
 		{
 			name: "test add story failure when title is empty",
@@ -95,7 +96,7 @@ func TestAddStory(t *testing.T) {
 				return w.Body.String(), w.Code
 			},
 			expectedCode:   http.StatusBadRequest,
-			expectedResult: "{\"error\":{\"code\":\"STx0001\",\"message\":\"title cannot be empty\"},\"success\":false}",
+			expectedResult: "{\"error\":{\"message\":\"title cannot be empty\"},\"success\":false}",
 		},
 		{
 			name: "test add story failure when body is empty",
@@ -118,7 +119,7 @@ func TestAddStory(t *testing.T) {
 				return w.Body.String(), w.Code
 			},
 			expectedCode:   http.StatusBadRequest,
-			expectedResult: "{\"error\":{\"code\":\"STx0001\",\"message\":\"body cannot be empty\"},\"success\":false}",
+			expectedResult: "{\"error\":{\"message\":\"body cannot be empty\"},\"success\":false}",
 		},
 		{
 			name: "test add story failure when svc call fails",
@@ -136,7 +137,7 @@ func TestAddStory(t *testing.T) {
 				require.NoError(t, err)
 
 				ms := &service.MockStoriesService{}
-				ms.On("AddStory", st).Return(errors.New("failed to add story"))
+				ms.On("AddStory", st).Return(liberr.WithArgs(liberr.SeverityError, errors.New("failed to add story")))
 
 				ah := handler.NewAddHandler(cfg.StoryConfig(), ms)
 
@@ -151,7 +152,7 @@ func TestAddStory(t *testing.T) {
 				return w.Body.String(), w.Code
 			},
 			expectedCode:   http.StatusInternalServerError,
-			expectedResult: "{\"error\":{\"code\":\"STx0010\",\"message\":\"failed to add story\"},\"success\":false}",
+			expectedResult: "{\"error\":{\"message\":\"internal server error\"},\"success\":false}",
 		},
 	}
 

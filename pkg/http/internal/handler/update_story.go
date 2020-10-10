@@ -3,7 +3,6 @@ package handler
 import (
 	"github.com/nsnikhil/stories/pkg/config"
 	"github.com/nsnikhil/stories/pkg/http/contract"
-	"github.com/nsnikhil/stories/pkg/http/internal/liberr"
 	"github.com/nsnikhil/stories/pkg/http/internal/util"
 	"github.com/nsnikhil/stories/pkg/story/service"
 	"net/http"
@@ -18,17 +17,17 @@ func (ush *UpdateStoryHandler) UpdateStory(resp http.ResponseWriter, req *http.R
 	var data contract.UpdateStoryRequest
 	err := util.ParseRequest(req, &data)
 	if err != nil {
-		return liberr.ValidationError(err.Error())
+		return err
 	}
 
 	st, err := util.ConvertToDAO(ush.cfg.TitleMaxLength(), ush.cfg.BodyMaxLength(), data.Story)
 	if err != nil {
-		return liberr.ValidationError(err.Error())
+		return err
 	}
 
 	_, err = ush.svc.UpdateStory(st)
 	if err != nil {
-		return liberr.InternalError(err.Error())
+		return err
 	}
 
 	util.WriteSuccessResponse(http.StatusOK, contract.UpdateStoryResponse{Success: true}, resp)

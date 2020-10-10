@@ -1,7 +1,7 @@
 package util_test
 
 import (
-	"github.com/nsnikhil/stories/pkg/http/internal/liberr"
+	"github.com/nsnikhil/stories/pkg/http/internal/resperr"
 	"github.com/nsnikhil/stories/pkg/http/internal/util"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -71,7 +71,7 @@ func TestWriteFailureResponse(t *testing.T) {
 		{
 			name: "write failure response success",
 			actualResult: func() (string, int) {
-				err := liberr.NewResponseError("some-code", http.StatusBadRequest, "failed to parse")
+				err := resperr.NewHTTPResponseError(http.StatusBadRequest, "failed to parse")
 
 				w := httptest.NewRecorder()
 
@@ -80,7 +80,7 @@ func TestWriteFailureResponse(t *testing.T) {
 				return w.Body.String(), w.Code
 			},
 			expectedCode:   http.StatusBadRequest,
-			expectedResult: "{\"error\":{\"code\":\"some-code\",\"message\":\"failed to parse\"},\"success\":false}",
+			expectedResult: "{\"error\":{\"message\":\"failed to parse\"},\"success\":false}",
 		},
 	}
 

@@ -8,6 +8,7 @@ import (
 	"github.com/nsnikhil/stories/pkg/http/contract"
 	"github.com/nsnikhil/stories/pkg/http/internal/handler"
 	mdl "github.com/nsnikhil/stories/pkg/http/internal/middleware"
+	"github.com/nsnikhil/stories/pkg/liberr"
 	"github.com/nsnikhil/stories/pkg/story/model"
 	"github.com/nsnikhil/stories/pkg/story/service"
 	"github.com/stretchr/testify/assert"
@@ -90,7 +91,7 @@ func TestUpdateStory(t *testing.T) {
 				return w.Body.String(), w.Code
 			},
 			expectedCode:   http.StatusBadRequest,
-			expectedResult: "{\"error\":{\"code\":\"STx0001\",\"message\":\"unexpected end of JSON input\"},\"success\":false}",
+			expectedResult: "{\"error\":{\"message\":\"unexpected end of JSON input\"},\"success\":false}",
 		},
 		{
 			name: "test update story failure when id is invalid",
@@ -124,7 +125,7 @@ func TestUpdateStory(t *testing.T) {
 				return w.Body.String(), w.Code
 			},
 			expectedCode:   http.StatusBadRequest,
-			expectedResult: "{\"error\":{\"code\":\"STx0001\",\"message\":\"invalid id: invalid-id\"},\"success\":false}",
+			expectedResult: "{\"error\":{\"message\":\"invalid id: invalid-id\"},\"success\":false}",
 		},
 		{
 			name: "test update story failure when title is empty",
@@ -158,7 +159,7 @@ func TestUpdateStory(t *testing.T) {
 				return w.Body.String(), w.Code
 			},
 			expectedCode:   http.StatusBadRequest,
-			expectedResult: "{\"error\":{\"code\":\"STx0001\",\"message\":\"title cannot be empty\"},\"success\":false}",
+			expectedResult: "{\"error\":{\"message\":\"title cannot be empty\"},\"success\":false}",
 		},
 		{
 			name: "test update story failure when body is empty",
@@ -192,7 +193,7 @@ func TestUpdateStory(t *testing.T) {
 				return w.Body.String(), w.Code
 			},
 			expectedCode:   http.StatusBadRequest,
-			expectedResult: "{\"error\":{\"code\":\"STx0001\",\"message\":\"body cannot be empty\"},\"success\":false}",
+			expectedResult: "{\"error\":{\"message\":\"body cannot be empty\"},\"success\":false}",
 		},
 		{
 			name: "test update story failure when svc call fails",
@@ -230,7 +231,7 @@ func TestUpdateStory(t *testing.T) {
 				require.NoError(t, err)
 
 				ms := &service.MockStoriesService{}
-				ms.On("UpdateStory", ds).Return(int64(0), errors.New("failed to update story"))
+				ms.On("UpdateStory", ds).Return(int64(0), liberr.WithArgs(liberr.SeverityError, errors.New("failed to update story")))
 
 				uh := handler.NewUpdateStoryHandler(cfg.StoryConfig(), ms)
 
@@ -242,7 +243,7 @@ func TestUpdateStory(t *testing.T) {
 				return w.Body.String(), w.Code
 			},
 			expectedCode:   http.StatusInternalServerError,
-			expectedResult: "{\"error\":{\"code\":\"STx0010\",\"message\":\"failed to update story\"},\"success\":false}",
+			expectedResult: "{\"error\":{\"message\":\"internal server error\"},\"success\":false}",
 		},
 	}
 

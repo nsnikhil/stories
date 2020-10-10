@@ -2,8 +2,10 @@ package middleware
 
 import (
 	"context"
-	"github.com/nsnikhil/stories/pkg/http/internal/liberr"
+	"fmt"
+	"github.com/nsnikhil/stories/pkg/http/internal/resperr"
 	"github.com/nsnikhil/stories/pkg/http/internal/util"
+	"github.com/nsnikhil/stories/pkg/liberr"
 	reporters "github.com/nsnikhil/stories/pkg/reporting"
 	"go.uber.org/zap"
 	"net/http"
@@ -14,16 +16,18 @@ func WithError(handler func(resp http.ResponseWriter, req *http.Request) error) 
 	return func(resp http.ResponseWriter, req *http.Request) {
 
 		err := handler(resp, req)
-		switch t := err.(type) {
-		case nil:
-			return
-		case liberr.ResponseError:
-			util.WriteFailureResponse(t, resp)
-			return
-		default:
-			util.WriteFailureResponse(liberr.InternalError(err.Error()), resp)
+		if err == nil {
 			return
 		}
+
+		t, ok := err.(*liberr.Error)
+		if ok {
+			fmt.Println(t.Details())
+		} else {
+			fmt.Println(err)
+		}
+
+		util.WriteFailureResponse(resperr.MapError(err), resp)
 	}
 }
 
@@ -33,10 +37,10 @@ func WithReqRespLog(lgr *zap.Logger, handler http.HandlerFunc) http.HandlerFunc 
 
 		handler(cr, req)
 
-		b, _ := cr.Body()
+		//b, _ := cr.Body()
 
-		lgr.Sugar().Debug(req)
-		lgr.Sugar().Debug(string(b))
+		//lgr.Sugar().Debug(req)
+		//lgr.Sugar().Debug(string(b))
 	}
 }
 

@@ -7,7 +7,6 @@ type APIResponse struct {
 }
 
 type Error struct {
-	Code    string `json:"code,omitempty"`
 	Message string `json:"message,omitempty"`
 }
 
@@ -18,10 +17,9 @@ func NewSuccessResponse(data interface{}) APIResponse {
 	}
 }
 
-func NewFailureResponse(errorCode, description string) APIResponse {
+func NewFailureResponse(description string) APIResponse {
 	return APIResponse{
 		Error: &Error{
-			Code:    errorCode,
 			Message: description,
 		},
 		Success: false,

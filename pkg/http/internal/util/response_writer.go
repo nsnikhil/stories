@@ -3,7 +3,7 @@ package util
 import (
 	"encoding/json"
 	"github.com/nsnikhil/stories/pkg/http/contract"
-	"github.com/nsnikhil/stories/pkg/http/internal/liberr"
+	"github.com/nsnikhil/stories/pkg/http/internal/resperr"
 	"net/http"
 )
 
@@ -27,6 +27,6 @@ func WriteSuccessResponse(statusCode int, data interface{}, resp http.ResponseWr
 	writeAPIResponse(statusCode, contract.NewSuccessResponse(data), resp)
 }
 
-func WriteFailureResponse(gr liberr.ResponseError, resp http.ResponseWriter) {
-	writeAPIResponse(gr.StatusCode(), contract.NewFailureResponse(gr.ErrorCode(), gr.Error()), resp)
+func WriteFailureResponse(gr resperr.HTTPResponseError, resp http.ResponseWriter) {
+	writeAPIResponse(gr.StatusCode(), contract.NewFailureResponse(gr.Description()), resp)
 }

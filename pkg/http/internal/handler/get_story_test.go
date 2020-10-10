@@ -7,6 +7,7 @@ import (
 	"github.com/nsnikhil/stories/pkg/http/contract"
 	"github.com/nsnikhil/stories/pkg/http/internal/handler"
 	mdl "github.com/nsnikhil/stories/pkg/http/internal/middleware"
+	"github.com/nsnikhil/stories/pkg/liberr"
 	"github.com/nsnikhil/stories/pkg/story/model"
 	"github.com/nsnikhil/stories/pkg/story/service"
 	"github.com/stretchr/testify/assert"
@@ -80,7 +81,7 @@ func TestGetStory(t *testing.T) {
 				return w.Body.String(), w.Code
 			},
 			expectedCode:   http.StatusBadRequest,
-			expectedResult: "{\"error\":{\"code\":\"STx0001\",\"message\":\"unexpected end of JSON input\"},\"success\":false}",
+			expectedResult: "{\"error\":{\"message\":\"unexpected end of JSON input\"},\"success\":false}",
 		},
 		{
 			name: "test get story failure when service calls fails",
@@ -88,7 +89,7 @@ func TestGetStory(t *testing.T) {
 				id := "adbca278-7e5c-4831-bf90-15fadfda0dd1"
 
 				ms := &service.MockStoriesService{}
-				ms.On("GetStory", id).Return(&model.Story{}, errors.New("failed to get story"))
+				ms.On("GetStory", id).Return(&model.Story{}, liberr.WithArgs(liberr.SeverityError, errors.New("failed to get story")))
 
 				gtReq := contract.GetStoryRequest{
 					StoryID: id,
@@ -107,7 +108,7 @@ func TestGetStory(t *testing.T) {
 				return w.Body.String(), w.Code
 			},
 			expectedCode:   http.StatusInternalServerError,
-			expectedResult: "{\"error\":{\"code\":\"STx0010\",\"message\":\"failed to get story\"},\"success\":false}",
+			expectedResult: "{\"error\":{\"message\":\"internal server error\"},\"success\":false}",
 		},
 	}
 
