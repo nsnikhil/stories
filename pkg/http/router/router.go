@@ -49,6 +49,7 @@ func getChiRouter(cfg config.StoryConfig, lgr *zap.Logger, newRelic *newrelic.Ap
 	r.Use(middleware.Recoverer)
 	r.Use(nrgorilla.Middleware(newRelic))
 
+	//TODO: SHOULD ANY MIDDLEWARE BE ADDED TO PING API ?
 	r.Get(pingPath, withMiddlewares(lgr, pr, pingAPI, handler.PingHandler()))
 	r.Handle(metricPath, promhttp.Handler())
 
@@ -67,13 +68,13 @@ func addStoryRoutes(cfg config.StoryConfig, lgr *zap.Logger, pr reporters.Promet
 	uh := handler.NewUpdateStoryHandler(cfg, svc)
 
 	r.Route(storyPath, func(r chi.Router) {
-		r.Post(addPath, withMiddlewares(lgr, pr, addAPI, mdl.WithError(ah.AddStory)))
-		r.Get(getPath, withMiddlewares(lgr, pr, getAPI, mdl.WithError(gh.GetStory)))
-		r.Delete(deletePath, withMiddlewares(lgr, pr, deleteAPI, mdl.WithError(dh.DeleteStory)))
-		r.Get(mostViewedPath, withMiddlewares(lgr, pr, mostViewedAPI, mdl.WithError(mvh.GetMostViewedStories)))
-		r.Get(topRatedPath, withMiddlewares(lgr, pr, topRatedAPI, mdl.WithError(trh.GetTopRatedStories)))
-		r.Get(searchPath, withMiddlewares(lgr, pr, searchAPI, mdl.WithError(sh.SearchStories)))
-		r.Patch(updatePath, withMiddlewares(lgr, pr, updateAPI, mdl.WithError(uh.UpdateStory)))
+		r.Post(addPath, withMiddlewares(lgr, pr, addAPI, mdl.WithError(lgr, ah.AddStory)))
+		r.Get(getPath, withMiddlewares(lgr, pr, getAPI, mdl.WithError(lgr, gh.GetStory)))
+		r.Delete(deletePath, withMiddlewares(lgr, pr, deleteAPI, mdl.WithError(lgr, dh.DeleteStory)))
+		r.Get(mostViewedPath, withMiddlewares(lgr, pr, mostViewedAPI, mdl.WithError(lgr, mvh.GetMostViewedStories)))
+		r.Get(topRatedPath, withMiddlewares(lgr, pr, topRatedAPI, mdl.WithError(lgr, trh.GetTopRatedStories)))
+		r.Get(searchPath, withMiddlewares(lgr, pr, searchAPI, mdl.WithError(lgr, sh.SearchStories)))
+		r.Patch(updatePath, withMiddlewares(lgr, pr, updateAPI, mdl.WithError(lgr, uh.UpdateStory)))
 	})
 }
 

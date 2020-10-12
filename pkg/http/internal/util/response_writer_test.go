@@ -71,7 +71,7 @@ func TestWriteFailureResponse(t *testing.T) {
 		{
 			name: "write failure response success",
 			actualResult: func() (string, int) {
-				err := resperr.NewHTTPResponseError(http.StatusBadRequest, "failed to parse")
+				err := resperr.NewResponseError(http.StatusBadRequest, "failed to parse")
 
 				w := httptest.NewRecorder()
 

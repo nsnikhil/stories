@@ -1,7 +1,7 @@
 package util
 
 import (
-	"github.com/nsnikhil/stories/pkg/http/contract"
+	"github.com/nsnikhil/stories/pkg/http/internal/contract"
 	"github.com/nsnikhil/stories/pkg/story/model"
 	"time"
 )

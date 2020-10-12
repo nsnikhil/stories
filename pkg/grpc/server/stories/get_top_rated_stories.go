@@ -18,5 +18,6 @@ func (ss *Server) GetTopRatedStories(ctx context.Context, req *proto.TopRatedSto
 		resp[i] = toProtoStory(&stories[i])
 	}
 
+	//TODO: ADD SUCCESS LOG
 	return &proto.TopRatedStoriesResponse{Stories: resp}, nil
 }

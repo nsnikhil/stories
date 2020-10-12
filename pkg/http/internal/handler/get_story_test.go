@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/nsnikhil/stories/pkg/http/contract"
+	"github.com/nsnikhil/stories/pkg/http/internal/contract"
 	"github.com/nsnikhil/stories/pkg/http/internal/handler"
 	mdl "github.com/nsnikhil/stories/pkg/http/internal/middleware"
 	"github.com/nsnikhil/stories/pkg/liberr"
+	reporters "github.com/nsnikhil/stories/pkg/reporting"
 	"github.com/nsnikhil/stories/pkg/story/model"
 	"github.com/nsnikhil/stories/pkg/story/service"
 	"github.com/stretchr/testify/assert"
@@ -19,6 +20,8 @@ import (
 )
 
 func TestGetStory(t *testing.T) {
+	lgr := reporters.NewLogger("dev", "debug")
+
 	testCases := []struct {
 		name           string
 		actualResult   func() (string, int)
@@ -61,7 +64,7 @@ func TestGetStory(t *testing.T) {
 
 				gh := handler.NewGetStoryHandler(ms)
 
-				mdl.WithError(gh.GetStory)(w, r)
+				mdl.WithError(lgr, gh.GetStory)(w, r)
 
 				return w.Body.String(), w.Code
 			},
@@ -76,7 +79,7 @@ func TestGetStory(t *testing.T) {
 
 				gh := handler.NewGetStoryHandler(&service.MockStoriesService{})
 
-				mdl.WithError(gh.GetStory)(w, r)
+				mdl.WithError(lgr, gh.GetStory)(w, r)
 
 				return w.Body.String(), w.Code
 			},
@@ -103,7 +106,7 @@ func TestGetStory(t *testing.T) {
 
 				gh := handler.NewGetStoryHandler(ms)
 
-				mdl.WithError(gh.GetStory)(w, r)
+				mdl.WithError(lgr, gh.GetStory)(w, r)
 
 				return w.Body.String(), w.Code
 			},

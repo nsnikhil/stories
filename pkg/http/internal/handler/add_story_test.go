@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/nsnikhil/stories/pkg/config"
-	"github.com/nsnikhil/stories/pkg/http/contract"
+	"github.com/nsnikhil/stories/pkg/http/internal/contract"
 	"github.com/nsnikhil/stories/pkg/http/internal/handler"
 	mdl "github.com/nsnikhil/stories/pkg/http/internal/middleware"
 	"github.com/nsnikhil/stories/pkg/liberr"
+	reporters "github.com/nsnikhil/stories/pkg/reporting"
 	"github.com/nsnikhil/stories/pkg/story/model"
 	"github.com/nsnikhil/stories/pkg/story/service"
 	"github.com/stretchr/testify/assert"
@@ -20,6 +21,7 @@ import (
 
 func TestAddStory(t *testing.T) {
 	cfg := config.NewConfig("../../../../local.env")
+	lgr := reporters.NewLogger("dev", "debug")
 
 	testCases := []struct {
 		name           string
@@ -53,7 +55,7 @@ func TestAddStory(t *testing.T) {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodPost, "/story/add", bytes.NewBuffer(b))
 
-				mdl.WithError(ah.AddStory)(w, r)
+				mdl.WithError(lgr, ah.AddStory)(w, r)
 
 				return w.Body.String(), w.Code
 			},
@@ -68,7 +70,7 @@ func TestAddStory(t *testing.T) {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodPost, "/story/add", nil)
 
-				mdl.WithError(ah.AddStory)(w, r)
+				mdl.WithError(lgr, ah.AddStory)(w, r)
 
 				return w.Body.String(), w.Code
 			},
@@ -91,7 +93,7 @@ func TestAddStory(t *testing.T) {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodPost, "/story/add", bytes.NewBuffer(b))
 
-				mdl.WithError(ah.AddStory)(w, r)
+				mdl.WithError(lgr, ah.AddStory)(w, r)
 
 				return w.Body.String(), w.Code
 			},
@@ -114,7 +116,7 @@ func TestAddStory(t *testing.T) {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodPost, "/story/add", bytes.NewBuffer(b))
 
-				mdl.WithError(ah.AddStory)(w, r)
+				mdl.WithError(lgr, ah.AddStory)(w, r)
 
 				return w.Body.String(), w.Code
 			},
@@ -147,7 +149,7 @@ func TestAddStory(t *testing.T) {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodPost, "/story/add", bytes.NewBuffer(b))
 
-				mdl.WithError(ah.AddStory)(w, r)
+				mdl.WithError(lgr, ah.AddStory)(w, r)
 
 				return w.Body.String(), w.Code
 			},

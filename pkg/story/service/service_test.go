@@ -319,7 +319,7 @@ func TestStoryServiceGetMostViewsStories(t *testing.T) {
 				return sv.GetMostViewsStories(0, 1)
 			},
 			expectedResult: func() []model.Story {
-				return []model.Story{}
+				return nil
 			},
 			expectedError: errors.New("failed to get most viewed story"),
 		},
@@ -388,7 +388,7 @@ func TestStoryServiceGetTopRatedStories(t *testing.T) {
 				return sv.GetTopRatedStories(0, 1)
 			},
 			expectedResult: func() []model.Story {
-				return []model.Story{}
+				return nil
 			},
 			expectedError: errors.New("failed to get top rated story"),
 		},

@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/nsnikhil/stories/pkg/http/contract"
+	"github.com/nsnikhil/stories/pkg/http/internal/contract"
 	"github.com/nsnikhil/stories/pkg/http/internal/handler"
 	mdl "github.com/nsnikhil/stories/pkg/http/internal/middleware"
 	"github.com/nsnikhil/stories/pkg/liberr"
+	reporters "github.com/nsnikhil/stories/pkg/reporting"
 	"github.com/nsnikhil/stories/pkg/story/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -17,6 +18,8 @@ import (
 )
 
 func TestDeleteStory(t *testing.T) {
+	lgr := reporters.NewLogger("dev", "debug")
+
 	testCases := []struct {
 		name           string
 		actualResult   func() (string, int)
@@ -43,7 +46,7 @@ func TestDeleteStory(t *testing.T) {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodDelete, "/story/delete", bytes.NewBuffer(b))
 
-				mdl.WithError(dh.DeleteStory)(w, r)
+				mdl.WithError(lgr, dh.DeleteStory)(w, r)
 
 				return w.Body.String(), w.Code
 			},
@@ -58,7 +61,7 @@ func TestDeleteStory(t *testing.T) {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodDelete, "/story/delete", nil)
 
-				mdl.WithError(dh.DeleteStory)(w, r)
+				mdl.WithError(lgr, dh.DeleteStory)(w, r)
 
 				return w.Body.String(), w.Code
 			},
@@ -85,7 +88,7 @@ func TestDeleteStory(t *testing.T) {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodDelete, "/story/delete", bytes.NewBuffer(b))
 
-				mdl.WithError(dh.DeleteStory)(w, r)
+				mdl.WithError(lgr, dh.DeleteStory)(w, r)
 
 				return w.Body.String(), w.Code
 			},

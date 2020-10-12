@@ -16,5 +16,6 @@ func (ss *Server) UpdateStory(ctx context.Context, req *proto.UpdateStoryRequest
 		return &proto.UpdateStoryResponse{Success: false}, err
 	}
 
+	//TODO: ADD SUCCESS LOG
 	return &proto.UpdateStoryResponse{Success: true}, nil
 }

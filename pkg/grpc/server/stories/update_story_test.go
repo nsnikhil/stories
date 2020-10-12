@@ -227,7 +227,12 @@ func TestStoriesServerUpdateStory(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			res, err := testCase.actualResult()
 
-			assert.Equal(t, testCase.expectedError, err)
+			if testCase.expectedError != nil {
+				assert.Equal(t, testCase.expectedError.Error(), err.Error())
+			} else {
+				assert.Nil(t, err)
+			}
+
 			assert.Equal(t, testCase.expectedResult, res)
 		})
 	}

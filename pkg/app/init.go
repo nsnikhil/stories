@@ -16,42 +16,34 @@ import (
 	"os"
 )
 
-//TODO: COMBINE INIT GRPC AND INIT HTTP SERVER
 func initGRPCServer(configFile string) grpcserver.Server {
-	cfg := config.NewConfig(configFile)
-
-	lgr := initLogger(cfg)
-	pr := reporters.NewPrometheus()
-	nr := reporters.NewNewRelicApp(cfg.NewRelicConfig())
-
-	svc := initService(cfg)
-
+	cfg, lgr, pr, nr, svc := initCommons(configFile)
 	return grpcserver.NewServer(cfg, lgr, nr, pr, svc)
 }
 
-//TODO: COMBINE INIT GRPC AND INIT HTTP SERVER
 func initHTTPServer(configFile string) httpserver.Server {
+	cfg, lgr, pr, nr, svc := initCommons(configFile)
+	rt := initRouter(cfg.StoryConfig(), lgr, nr, pr, svc)
+	return httpserver.NewServer(cfg, lgr, rt)
+}
+
+func initCommons(configFile string) (config.Config, *zap.Logger, reporters.Prometheus, *newrelic.Application, service.StoryService) {
 	cfg := config.NewConfig(configFile)
 
 	lgr := initLogger(cfg)
 	pr := reporters.NewPrometheus()
-	nr := reporters.NewNewRelicApp(cfg.NewRelicConfig())
+	nr, err := reporters.NewNewRelicApp(cfg.NewRelicConfig())
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	svc := initService(cfg)
 
-	rt := initRouter(cfg.StoryConfig(), lgr, nr, pr, svc)
-
-	return httpserver.NewServer(cfg, lgr, rt)
+	return cfg, lgr, pr, nr, svc
 }
 
 func initRouter(cfg config.StoryConfig, lgr *zap.Logger, newRelic *newrelic.Application, prometheus reporters.Prometheus, svc service.StoryService) http.Handler {
-	return router.NewRouter(
-		cfg,
-		lgr,
-		newRelic,
-		prometheus,
-		svc,
-	)
+	return router.NewRouter(cfg, lgr, newRelic, prometheus, svc)
 }
 
 func initService(cfg config.Config) service.StoryService {
@@ -79,6 +71,7 @@ func initLogger(cfg config.Config) *zap.Logger {
 }
 
 func getWriters(cfg config.Config) []io.Writer {
+	//TODO: MOVE TO CONST
 	logSinkMap := map[string]io.Writer{
 		"stdout": os.Stdout,
 		"file":   reporters.NewExternalLogFile(cfg.LogFileConfig()),

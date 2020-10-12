@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/nsnikhil/stories/pkg/config"
-	"github.com/nsnikhil/stories/pkg/http/contract"
+	"github.com/nsnikhil/stories/pkg/http/internal/contract"
 	"github.com/nsnikhil/stories/pkg/http/internal/handler"
 	mdl "github.com/nsnikhil/stories/pkg/http/internal/middleware"
 	"github.com/nsnikhil/stories/pkg/liberr"
+	reporters "github.com/nsnikhil/stories/pkg/reporting"
 	"github.com/nsnikhil/stories/pkg/story/model"
 	"github.com/nsnikhil/stories/pkg/story/service"
 	"github.com/stretchr/testify/assert"
@@ -21,6 +22,7 @@ import (
 
 func TestUpdateStory(t *testing.T) {
 	cfg := config.NewConfig("../../../../local.env")
+	lgr := reporters.NewLogger("dev", "debug")
 
 	testCases := []struct {
 		name           string
@@ -71,7 +73,7 @@ func TestUpdateStory(t *testing.T) {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodPatch, "/story/update", bytes.NewBuffer(b))
 
-				mdl.WithError(uh.UpdateStory)(w, r)
+				mdl.WithError(lgr, uh.UpdateStory)(w, r)
 
 				return w.Body.String(), w.Code
 			},
@@ -86,7 +88,7 @@ func TestUpdateStory(t *testing.T) {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodPatch, "/story/update", nil)
 
-				mdl.WithError(uh.UpdateStory)(w, r)
+				mdl.WithError(lgr, uh.UpdateStory)(w, r)
 
 				return w.Body.String(), w.Code
 			},
@@ -120,7 +122,7 @@ func TestUpdateStory(t *testing.T) {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodPatch, "/story/update", bytes.NewBuffer(b))
 
-				mdl.WithError(uh.UpdateStory)(w, r)
+				mdl.WithError(lgr, uh.UpdateStory)(w, r)
 
 				return w.Body.String(), w.Code
 			},
@@ -154,7 +156,7 @@ func TestUpdateStory(t *testing.T) {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodPatch, "/story/update", bytes.NewBuffer(b))
 
-				mdl.WithError(uh.UpdateStory)(w, r)
+				mdl.WithError(lgr, uh.UpdateStory)(w, r)
 
 				return w.Body.String(), w.Code
 			},
@@ -188,7 +190,7 @@ func TestUpdateStory(t *testing.T) {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodPatch, "/story/update", bytes.NewBuffer(b))
 
-				mdl.WithError(uh.UpdateStory)(w, r)
+				mdl.WithError(lgr, uh.UpdateStory)(w, r)
 
 				return w.Body.String(), w.Code
 			},
@@ -238,7 +240,7 @@ func TestUpdateStory(t *testing.T) {
 				w := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodPatch, "/story/update", bytes.NewBuffer(b))
 
-				mdl.WithError(uh.UpdateStory)(w, r)
+				mdl.WithError(lgr, uh.UpdateStory)(w, r)
 
 				return w.Body.String(), w.Code
 			},

@@ -21,6 +21,7 @@ type Prometheus interface {
 	Observe(bucket string, value float64)
 }
 
+//TODO: REMOVE (REMOVE DEFAULT)
 type defaultPrometheus struct {
 	apiCounter        *prometheus.CounterVec
 	responseHistogram *prometheus.HistogramVec

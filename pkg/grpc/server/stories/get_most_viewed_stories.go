@@ -18,5 +18,6 @@ func (ss *Server) GetMostViewedStories(ctx context.Context, req *proto.MostViewe
 		resp[i] = toProtoStory(&stories[i])
 	}
 
+	//TODO: ADD SUCCESS LOG
 	return &proto.MostViewedStoriesResponse{Stories: resp}, nil
 }

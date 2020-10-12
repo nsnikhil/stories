@@ -9,17 +9,18 @@ import (
 	"time"
 )
 
+//TODO: ADD MASKING BEFORE LOGGING REQ AND RESP
 func WithReqRespLogger(lgr *zap.Logger) func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		lgr.Sugar().Debug(req)
+		//lgr.Sugar().Debug(req)
 
 		h, err := handler(ctx, req)
 		if err != nil {
-			lgr.Sugar().Debug(err)
+			//lgr.Sugar().Debug(err)
 			return h, err
 		}
 
-		lgr.Sugar().Debug(h)
+		//lgr.Sugar().Debug(h)
 		return h, err
 	}
 }

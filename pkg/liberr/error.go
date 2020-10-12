@@ -8,14 +8,16 @@ import (
 type Error struct {
 	kind       Kind
 	operations []Operation
-	severity   Severity
-	err        error
+	//TODO: WHY IS SEVERITY NEEDED ?
+	severity Severity
+	err      error
 }
 
 func (e *Error) Kind() Kind {
 	return e.kind
 }
 
+//TODO: DECIDE THE FINAL IMPLEMENTATION OF THE DETAILS METHOD
 func (e *Error) Details() string {
 	b := &strings.Builder{}
 
@@ -50,6 +52,7 @@ func (e *Error) Unwrap() error {
 	return e.err
 }
 
+//TODO: DECIDE THE FINAL IMPLEMENTATION OF THE ERROR METHOD
 func (e *Error) Error() string {
 	if e.err == nil {
 		return ""
@@ -68,6 +71,7 @@ func WithKind(kind Kind, err error) *Error {
 		return WithArgs(kind, err)
 	}
 
+	//TODO: SHOULD OVERRIDING BE ALLOWED
 	t.kind = kind
 	return t
 }
@@ -96,6 +100,7 @@ func WithSeverity(severity Severity, err error) *Error {
 		return WithArgs(severity, err)
 	}
 
+	//TODO: SHOULD OVERRIDING BE ALLOWED
 	t.severity = severity
 	return t
 }
@@ -110,12 +115,44 @@ func WithCause(err error) *Error {
 		return WithArgs(err)
 	}
 
+	//TODO: SHOULD OVERRIDING BE ALLOWED
 	t.err = err
 	return t
 }
 
+// TODO: DECIDE WHICH OF THE THREE FUNC WOULD YOU BE USING TO CREATE NEW ERROR
+//TODO: CREATE A SIMILAR FUNCTIONS WHICH DOES NOT CREATE NEW ERROR BUT RATHER INJECTS ARGS
 func WithArgs(args ...interface{}) *Error {
 	e := &Error{}
+	ok := injectArgs(e, args...)
+	if !ok {
+		return nil
+	}
+
+	return e
+}
+
+//TODO: RENAME THIS TO SOMETHING MEANINGFUL
+func WithInjectArgs(err error, args ...interface{}) *Error {
+	if err == nil {
+		return nil
+	}
+
+	t, ok := err.(*Error)
+	if !ok {
+		return WithArgs(err, args)
+	}
+
+	//TODO: SHOULD IT RETURN NIL IF THE ARGS IS INVALID AS WILL LOSE THE ERROR?
+	ok = injectArgs(t, args...)
+	if !ok {
+		return nil
+	}
+
+	return t
+}
+
+func injectArgs(e *Error, args ...interface{}) bool {
 	for _, arg := range args {
 		switch t := arg.(type) {
 		case Operation:
@@ -127,12 +164,14 @@ func WithArgs(args ...interface{}) *Error {
 		case error:
 			e.err = t
 		default:
-			return nil
+			return false
 		}
 	}
-	return e
+
+	return true
 }
 
+// TODO: DECIDE WHICH OF THE THREE FUNC WOULD YOU BE USING TO CREATE NEW ERROR
 func NewError(kind Kind, operations []Operation, severity Severity, err error) *Error {
 	return &Error{
 		kind:       kind,
@@ -142,6 +181,7 @@ func NewError(kind Kind, operations []Operation, severity Severity, err error) *
 	}
 }
 
+// TODO: DECIDE WHICH OF THE THREE FUNC WOULD YOU BE USING TO CREATE NEW ERROR
 type ErrorBuilder struct {
 	kind       Kind
 	operations []Operation

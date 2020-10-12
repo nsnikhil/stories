@@ -10,6 +10,7 @@ import (
 	"regexp"
 )
 
+//TODO: SWITCH TO ORM TO REMOVE COUPLING OF QUERY WITH STRUCTS
 const (
 	insertStory   = `INSERT INTO stories (title, body, viewcount, upvotes, downvotes) VALUES ($1, $2, $3, $4, $5) RETURNING id`
 	getStories    = `SELECT * FROM stories WHERE id IN (`
@@ -20,16 +21,22 @@ const (
 )
 
 type StoriesStore interface {
+	//TODO: IS THE ID NEEDED IN THE RETURN?
 	AddStory(story *model.Story) (string, error)
+
 	GetStories(storyIDs ...string) ([]model.Story, error)
 
+	//TODO: IS THE COUNT NEEDED IN THE RETURN?
 	UpdateStory(story *model.Story) (int64, error)
+
+	//TODO: IS THE COUNT NEEDED IN THE RETURN?
 	DeleteStory(storyID string) (int64, error)
 
 	GetMostViewsStories(offset, limit int) ([]model.Story, error)
 	GetTopRatedStories(offset, limit int) ([]model.Story, error)
 }
 
+//TODO: RENAME (REMOVE DEFAULT)
 type defaultStoriesStore struct {
 	db *sql.DB
 }
@@ -38,7 +45,7 @@ func (dss *defaultStoriesStore) AddStory(st *model.Story) (string, error) {
 	var id string
 	err := dss.db.QueryRow(insertStory, st.GetTitle(), st.GetBody(), st.GetViewCount(), st.GetUpVotes(), st.GetDownVotes()).Scan(&id)
 	if err != nil {
-		return "", liberr.WithArgs(liberr.Operation("AddStory.db.QueryRow"), liberr.InternalError, liberr.SeverityError, err)
+		return "", liberr.WithArgs(op("AddStory.db.QueryRow"), liberr.InternalError, liberr.SeverityError, err)
 	}
 
 	return id, nil
@@ -60,24 +67,24 @@ func buildQuery(query string, id ...string) (string, error) {
 		if i > 0 {
 			_, err := buf.WriteString(",")
 			if err != nil {
-				return "", liberr.WithArgs(liberr.Operation("buildQuery.buf.WriteString"), liberr.SeverityError, err)
+				return "", liberr.WithArgs(op("buildQuery.buf.WriteString"), liberr.SeverityError, err)
 			}
 		}
 
 		if !isValidUUID(v) {
-			return "", liberr.WithArgs(liberr.Operation("buildQuery.isValidUUID"), liberr.SeverityError, fmt.Errorf("invalid uuid %s", v))
+			return "", liberr.WithArgs(op("buildQuery.isValidUUID"), liberr.ValidationError, liberr.SeverityError, fmt.Errorf("invalid uuid %s", v))
 		}
 
 		_, err := buf.WriteString(fmt.Sprintf("'%s'", v))
 		if err != nil {
-			return "", liberr.WithArgs(liberr.Operation("buildQuery.buf.WriteString"), liberr.SeverityError, err)
+			return "", liberr.WithArgs(op("buildQuery.buf.WriteString"), liberr.SeverityError, err)
 		}
 
 	}
 
 	_, err := buf.WriteString(")")
 	if err != nil {
-		return "", liberr.WithArgs(liberr.Operation("buildQuery.buf.WriteString"), liberr.SeverityError, err)
+		return "", liberr.WithArgs(op("buildQuery.buf.WriteString"), liberr.SeverityError, err)
 	}
 
 	return buf.String(), nil
@@ -109,7 +116,7 @@ func execQueryWithError(db *sql.DB, query string, errMsg string, args ...interfa
 	}
 
 	if ra == 0 {
-		return 0, liberr.WithArgs(liberr.Operation("execQueryWithError"), liberr.SeverityError, errors.New(errMsg))
+		return 0, liberr.WithArgs(op("execQueryWithError"), liberr.SeverityError, errors.New(errMsg))
 	}
 
 	return ra, nil
@@ -118,12 +125,12 @@ func execQueryWithError(db *sql.DB, query string, errMsg string, args ...interfa
 func execQuery(db *sql.DB, query string, args ...interface{}) (int64, error) {
 	res, err := db.Exec(query, args...)
 	if err != nil {
-		return 0, liberr.WithArgs(liberr.Operation("execQuery.db.Exec"), liberr.SeverityError, err)
+		return 0, liberr.WithArgs(op("execQuery.db.Exec"), liberr.SeverityError, err)
 	}
 
 	ra, err := res.RowsAffected()
 	if err != nil {
-		return 0, liberr.WithArgs(liberr.Operation("execQuery.res.RowsAffected"), liberr.SeverityError, err)
+		return 0, liberr.WithArgs(op("execQuery.res.RowsAffected"), liberr.SeverityError, err)
 	}
 
 	return ra, nil
@@ -133,39 +140,40 @@ func getRecords(db *sql.DB, query string, args ...interface{}) ([]model.Story, e
 	var stories []model.Story
 	rows, err := db.Query(query, args...)
 	if err != nil {
-		return nil, liberr.WithArgs(liberr.Operation("getRecords.db.Query"), liberr.SeverityError, err)
+		return nil, liberr.WithArgs(op("getRecords.db.Query"), liberr.SeverityError, err)
 	}
 
 	defer func() { _ = rows.Close() }()
 
 	for rows.Next() {
 		var story model.Story
-		err := rows.Scan(
-			&story.ID, &story.Title,
-			&story.Body, &story.ViewCount,
-			&story.UpVotes, &story.DownVotes,
-			&story.CreatedAt, &story.UpdatedAt,
-		)
 
+		//TODO: THIS METHOD REQUIRES FIELDS TO BE EXPORTED, CAN THIS BE FIXED ?
+		err := rows.Scan(&story.ID, &story.Title, &story.Body, &story.ViewCount, &story.UpVotes, &story.DownVotes, &story.CreatedAt, &story.UpdatedAt)
 		if err != nil {
-			return nil, liberr.WithArgs(liberr.Operation("getRecords.rows.Scan"), liberr.SeverityError, err)
+			return nil, liberr.WithArgs(op("getRecords.rows.Scan"), liberr.SeverityError, err)
 		}
 
 		stories = append(stories, story)
 	}
 
 	if len(stories) == 0 {
-		return nil, liberr.WithArgs(liberr.Operation("getRecords"), liberr.SeverityError, fmt.Errorf("no records found"))
+		return nil, liberr.WithArgs(op("getRecords"), liberr.SeverityError, fmt.Errorf("no records found"))
 	}
 
 	return stories, nil
+}
+
+//TODO: REMOVE THIS HELPER FUNCTIONS
+func op(co string) liberr.Operation {
+	return liberr.Operation(fmt.Sprintf("StoriesStore.%s", co))
 }
 
 func NewStoriesStore(db *sql.DB) StoriesStore {
 	return &defaultStoriesStore{db: db}
 }
 
-// TODO MOVE TO UTIL
+// TODO: MOVE TO UTIL
 func isValidUUID(uuid string) bool {
 	r := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
 	return r.MatchString(uuid)

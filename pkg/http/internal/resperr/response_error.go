@@ -1,20 +1,20 @@
 package resperr
 
-type HTTPResponseError struct {
+type ResponseError struct {
 	statusCode  int
 	description string
 }
 
-func (re HTTPResponseError) StatusCode() int {
+func (re ResponseError) StatusCode() int {
 	return re.statusCode
 }
 
-func (re HTTPResponseError) Description() string {
+func (re ResponseError) Description() string {
 	return re.description
 }
 
-func NewHTTPResponseError(statusCode int, description string) HTTPResponseError {
-	return HTTPResponseError{
+func NewResponseError(statusCode int, description string) ResponseError {
+	return ResponseError{
 		statusCode:  statusCode,
 		description: description,
 	}

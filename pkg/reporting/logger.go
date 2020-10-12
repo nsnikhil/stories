@@ -43,6 +43,7 @@ func logLevel(level string) zapcore.Level {
 	return l
 }
 
+//TODO: IS THE PREBUILT ENCODER CONFIG GOOD ENOUGH? OR DO YOU NEED TO A CUSTOM ONE?
 func encoderConfig(env string) zapcore.EncoderConfig {
 	if env == production {
 		return zap.NewProductionEncoderConfig()

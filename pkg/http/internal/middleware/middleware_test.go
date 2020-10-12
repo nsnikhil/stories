@@ -12,37 +12,44 @@ import (
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
 func TestWithErrorHandling(t *testing.T) {
 	testCases := []struct {
 		name           string
-		actualResult   func() (string, int)
+		actualResult   func() (string, int, string)
 		expectedResult string
 		expectedCode   int
+		expectedLog    string
 	}{
 		{
-			name: "test error middleware with response error",
-			actualResult: func() (string, int) {
+			name: "test error middleware with typed error",
+			actualResult: func() (string, int, string) {
 				w := httptest.NewRecorder()
 				r, err := http.NewRequest(http.MethodGet, "/random", nil)
 				require.NoError(t, err)
 
 				th := func(resp http.ResponseWriter, req *http.Request) error {
-					return liberr.WithArgs(liberr.SeverityError, liberr.ValidationError, errors.New("some error"))
+					return liberr.WithArgs(liberr.SeverityError, liberr.Operation("database.duplicated_record"), liberr.ValidationError, errors.New("some error"))
 				}
 
-				middleware.WithError(th)(w, r)
+				buf := new(bytes.Buffer)
 
-				return w.Body.String(), w.Code
+				lgr := reporters.NewLogger("dev", "debug", buf)
+
+				middleware.WithError(lgr, th)(w, r)
+
+				return w.Body.String(), w.Code, buf.String()
 			},
 			expectedResult: "{\"error\":{\"message\":\"some error\"},\"success\":false}",
 			expectedCode:   http.StatusBadRequest,
+			expectedLog:    "kind: validationError  operations: [database.duplicated_record]  severity: error  cause: some error",
 		},
 		{
 			name: "test error middleware with error",
-			actualResult: func() (string, int) {
+			actualResult: func() (string, int, string) {
 				w := httptest.NewRecorder()
 				r, err := http.NewRequest(http.MethodGet, "/random", nil)
 				require.NoError(t, err)
@@ -51,16 +58,21 @@ func TestWithErrorHandling(t *testing.T) {
 					return errors.New("some random error")
 				}
 
-				middleware.WithError(th)(w, r)
+				buf := new(bytes.Buffer)
 
-				return w.Body.String(), w.Code
+				lgr := reporters.NewLogger("dev", "debug", buf)
+
+				middleware.WithError(lgr, th)(w, r)
+
+				return w.Body.String(), w.Code, buf.String()
 			},
 			expectedResult: "{\"error\":{\"message\":\"internal server error\"},\"success\":false}",
 			expectedCode:   http.StatusInternalServerError,
+			expectedLog:    "some random error",
 		},
 		{
 			name: "test error middleware with no error",
-			actualResult: func() (string, int) {
+			actualResult: func() (string, int, string) {
 				w := httptest.NewRecorder()
 				r, err := http.NewRequest(http.MethodGet, "/random", nil)
 				require.NoError(t, err)
@@ -71,21 +83,30 @@ func TestWithErrorHandling(t *testing.T) {
 					return nil
 				}
 
-				middleware.WithError(th)(w, r)
+				buf := new(bytes.Buffer)
 
-				return w.Body.String(), w.Code
+				lgr := reporters.NewLogger("dev", "debug", buf)
+
+				middleware.WithError(lgr, th)(w, r)
+
+				return w.Body.String(), w.Code, buf.String()
 			},
 			expectedResult: "success",
 			expectedCode:   http.StatusOK,
+			expectedLog:    "",
 		},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			res, code := testCase.actualResult()
+			res, code, lg := testCase.actualResult()
 
 			assert.Equal(t, testCase.expectedCode, code)
 			assert.Equal(t, testCase.expectedResult, res)
+
+			if len(testCase.expectedLog) != 0 {
+				assert.True(t, strings.Contains(lg, testCase.expectedLog))
+			}
 		})
 	}
 }

@@ -17,6 +17,7 @@ const (
 	databaseName = "postgres"
 )
 
+// TODO: SHOULD IT RETURN LIB ERROR
 func RunMigrations(configFile string) {
 	newMigrate, err := newMigrate(configFile)
 	if err != nil {
@@ -33,6 +34,7 @@ func RunMigrations(configFile string) {
 	}
 }
 
+// TODO: SHOULD IT RETURN LIB ERROR
 func RollBackMigrations(configFile string) {
 	newMigrate, err := newMigrate(configFile)
 	if err != nil {

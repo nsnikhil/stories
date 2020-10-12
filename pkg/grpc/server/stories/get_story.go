@@ -11,5 +11,6 @@ func (ss *Server) GetStory(ctx context.Context, req *proto.GetStoryRequest) (*pr
 		return nil, err
 	}
 
+	//TODO: ADD SUCCESS LOG
 	return &proto.GetStoryResponse{Story: toProtoStory(st)}, nil
 }

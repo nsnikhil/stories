@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"context"
-	"fmt"
 	"github.com/nsnikhil/stories/pkg/http/internal/resperr"
 	"github.com/nsnikhil/stories/pkg/http/internal/util"
 	"github.com/nsnikhil/stories/pkg/liberr"
@@ -12,7 +11,7 @@ import (
 	"time"
 )
 
-func WithError(handler func(resp http.ResponseWriter, req *http.Request) error) http.HandlerFunc {
+func WithError(lgr *zap.Logger, handler func(resp http.ResponseWriter, req *http.Request) error) http.HandlerFunc {
 	return func(resp http.ResponseWriter, req *http.Request) {
 
 		err := handler(resp, req)
@@ -22,15 +21,16 @@ func WithError(handler func(resp http.ResponseWriter, req *http.Request) error) 
 
 		t, ok := err.(*liberr.Error)
 		if ok {
-			fmt.Println(t.Details())
+			lgr.Error(t.Details())
 		} else {
-			fmt.Println(err)
+			lgr.Error(err.Error())
 		}
 
 		util.WriteFailureResponse(resperr.MapError(err), resp)
 	}
 }
 
+//TODO: ADD MASKING BEFORE LOGGING REQ AND RESP
 func WithReqRespLog(lgr *zap.Logger, handler http.HandlerFunc) http.HandlerFunc {
 	return func(resp http.ResponseWriter, req *http.Request) {
 		cr := util.NewCopyWriter(resp)

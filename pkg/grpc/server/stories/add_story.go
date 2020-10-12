@@ -20,5 +20,6 @@ func (ss *Server) AddStory(ctx context.Context, req *proto.AddStoryRequest) (*pr
 		return &proto.AddStoryResponse{Success: false}, err
 	}
 
+	//TODO: ADD SUCCESS LOG
 	return &proto.AddStoryResponse{Success: true}, nil
 }

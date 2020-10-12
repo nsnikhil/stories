@@ -103,7 +103,7 @@ func TestCreateNewStory(t *testing.T) {
 
 			if testCase.expectedError != nil {
 				assert.Equal(t, testCase.expectedError.Error(), err.Error())
-			}else {
+			} else {
 				assert.Nil(t, err)
 			}
 

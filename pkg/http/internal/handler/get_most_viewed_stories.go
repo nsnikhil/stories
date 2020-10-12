@@ -1,8 +1,9 @@
 package handler
 
 import (
-	"github.com/nsnikhil/stories/pkg/http/contract"
+	"github.com/nsnikhil/stories/pkg/http/internal/contract"
 	"github.com/nsnikhil/stories/pkg/http/internal/util"
+	"github.com/nsnikhil/stories/pkg/liberr"
 	"github.com/nsnikhil/stories/pkg/story/service"
 	"net/http"
 )
@@ -15,12 +16,12 @@ func (gmh *GetMostViewedStoriesHandler) GetMostViewedStories(resp http.ResponseW
 	var data contract.MostViewedStoriesRequest
 	err := util.ParseRequest(req, &data)
 	if err != nil {
-		return err
+		return liberr.WithOperation("GetMostViewedStoriesHandler.GetMostViewedStories", err)
 	}
 
 	dss, err := gmh.svc.GetMostViewsStories(data.OffSet, data.Limit)
 	if err != nil {
-		return err
+		return liberr.WithOperation("GetMostViewedStoriesHandler.GetMostViewedStories", err)
 	}
 
 	// TODO: UNIFY BELOW LOGIC WITH TOP RATED HANDLER
@@ -31,6 +32,7 @@ func (gmh *GetMostViewedStoriesHandler) GetMostViewedStories(resp http.ResponseW
 		res[i] = util.ConvertToDTO(&dss[i])
 	}
 
+	//TODO: ADD SUCCESS LOG
 	util.WriteSuccessResponse(http.StatusOK, res, resp)
 	return nil
 }

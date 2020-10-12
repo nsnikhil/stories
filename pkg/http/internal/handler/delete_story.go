@@ -1,8 +1,9 @@
 package handler
 
 import (
-	"github.com/nsnikhil/stories/pkg/http/contract"
+	"github.com/nsnikhil/stories/pkg/http/internal/contract"
 	"github.com/nsnikhil/stories/pkg/http/internal/util"
+	"github.com/nsnikhil/stories/pkg/liberr"
 	"github.com/nsnikhil/stories/pkg/story/service"
 	"net/http"
 )
@@ -15,14 +16,15 @@ func (dsh *DeleteStoryHandler) DeleteStory(resp http.ResponseWriter, req *http.R
 	var data contract.DeleteStoryRequest
 	err := util.ParseRequest(req, &data)
 	if err != nil {
-		return err
+		return liberr.WithOperation("DeleteStoryHandler.DeleteStory", err)
 	}
 
 	_, err = dsh.svc.DeleteStory(data.StoryID)
 	if err != nil {
-		return err
+		return liberr.WithOperation("DeleteStoryHandler.DeleteStory", err)
 	}
 
+	//TODO: ADD SUCCESS LOG
 	util.WriteSuccessResponse(http.StatusOK, contract.DeleteStoryResponse{Success: true}, resp)
 	return nil
 }

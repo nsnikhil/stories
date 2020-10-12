@@ -8,7 +8,7 @@ import (
 )
 
 func TestGenericErrorGetErrorCode(t *testing.T) {
-	ge := resperr.NewHTTPResponseError(http.StatusBadRequest, "some reason")
+	ge := resperr.NewResponseError(http.StatusBadRequest, "some reason")
 
 	assert.Equal(t, http.StatusBadRequest, ge.StatusCode())
 	assert.Equal(t, "some reason", ge.Description())

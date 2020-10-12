@@ -20,7 +20,7 @@ type defaultDBHandler struct {
 func (dbh *defaultDBHandler) GetDB() (*sql.DB, error) {
 	db, err := sql.Open(dbh.cfg.DriverName(), dbh.cfg.Source())
 	if err != nil {
-		return nil, liberr.WithArgs(liberr.Operation("GetDB.sql.Open"), liberr.SeverityError, err)
+		return nil, liberr.WithArgs(liberr.Operation("DBHandler.GetDB.sql.Open"), liberr.SeverityError, err)
 	}
 
 	db.SetMaxOpenConns(dbh.cfg.MaxOpenConnections())
@@ -28,7 +28,7 @@ func (dbh *defaultDBHandler) GetDB() (*sql.DB, error) {
 	db.SetConnMaxLifetime(time.Minute * time.Duration(dbh.cfg.ConnectionMaxLifetime()))
 
 	if err := db.Ping(); err != nil {
-		return nil, liberr.WithArgs(liberr.Operation("GetDB.db.Ping"), liberr.SeverityError, err)
+		return nil, liberr.WithArgs(liberr.Operation("DBHandler.GetDB.db.Ping"), liberr.SeverityError, err)
 	}
 
 	return db, nil

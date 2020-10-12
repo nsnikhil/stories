@@ -11,5 +11,6 @@ func (ss *Server) DeleteStory(ctx context.Context, req *proto.DeleteStoryRequest
 		return &proto.DeleteStoryResponse{Success: false}, err
 	}
 
+	//TODO: ADD SUCCESS LOG
 	return &proto.DeleteStoryResponse{Success: true}, nil
 }

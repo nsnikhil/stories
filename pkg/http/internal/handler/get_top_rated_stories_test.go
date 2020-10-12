@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/nsnikhil/stories/pkg/http/contract"
+	"github.com/nsnikhil/stories/pkg/http/internal/contract"
 	"github.com/nsnikhil/stories/pkg/http/internal/handler"
 	mdl "github.com/nsnikhil/stories/pkg/http/internal/middleware"
 	"github.com/nsnikhil/stories/pkg/liberr"
+	reporters "github.com/nsnikhil/stories/pkg/reporting"
 	"github.com/nsnikhil/stories/pkg/story/model"
 	"github.com/nsnikhil/stories/pkg/story/service"
 	"github.com/stretchr/testify/assert"
@@ -19,6 +20,8 @@ import (
 )
 
 func TestGetTopRatedStories(t *testing.T) {
+	lgr := reporters.NewLogger("dev", "debug")
+
 	testCases := []struct {
 		name           string
 		actualResult   func() (string, int)
@@ -62,7 +65,7 @@ func TestGetTopRatedStories(t *testing.T) {
 
 				mvh := handler.NewGetTopRatedStoriesHandler(ms)
 
-				mdl.WithError(mvh.GetTopRatedStories)(w, r)
+				mdl.WithError(lgr, mvh.GetTopRatedStories)(w, r)
 
 				return w.Body.String(), w.Code
 			},
@@ -77,7 +80,7 @@ func TestGetTopRatedStories(t *testing.T) {
 
 				mvh := handler.NewGetTopRatedStoriesHandler(&service.MockStoriesService{})
 
-				mdl.WithError(mvh.GetTopRatedStories)(w, r)
+				mdl.WithError(lgr, mvh.GetTopRatedStories)(w, r)
 
 				return w.Body.String(), w.Code
 			},
@@ -105,7 +108,7 @@ func TestGetTopRatedStories(t *testing.T) {
 
 				mvh := handler.NewGetTopRatedStoriesHandler(ms)
 
-				mdl.WithError(mvh.GetTopRatedStories)(w, r)
+				mdl.WithError(lgr, mvh.GetTopRatedStories)(w, r)
 
 				return w.Body.String(), w.Code
 			},
