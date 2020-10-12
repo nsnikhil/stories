@@ -51,9 +51,14 @@ services:
       - docker.env
     networks:
       - storiesnetwork
+    logging:
+      driver: fluentd
+      options:
+        tag: docker-stories
     depends_on:
       - db
       - grafana
+      - fluent-bit
 
   envoy:
     image: envoyproxy/envoy:v1.15-latest
@@ -66,3 +71,38 @@ services:
       - ./envoy.yaml:/etc/envoy/envoy.yaml:ro
     depends_on:
       - stories
+
+  fluent-bit:
+    image: fluent/fluent-bit
+    volumes:
+      - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
+    depends_on:
+      - elasticsearch
+    links:
+      - "elasticsearch"
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+    networks:
+      - storiesnetwork
+
+  elasticsearch:
+    image: elasticsearch:7.9.2
+    expose:
+      - 9200
+    ports:
+      - "9200:9200"
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - discovery.type=single-node
+    networks:
+      - storiesnetwork
+
+  kibana:
+    image: kibana:7.9.2
+    links:
+      - "elasticsearch"
+    ports:
+      - "5601:5601"
+    networks:
+      - storiesnetwork

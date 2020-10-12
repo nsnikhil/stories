@@ -8,4 +8,6 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflag
 
 FROM scratch
 COPY --from=builder /stories/stories .
-CMD ["./stories", "grpc-serve"]
+#TODO: REMOVE TEMP HACK OF local.env
+COPY local.env .
+CMD ["./stories", "grpc-serve", "--configFile", "local.env"]

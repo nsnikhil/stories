@@ -4,6 +4,8 @@ APP_COMMIT:=$(shell git rev-parse HEAD)
 APP_EXECUTABLE="./out/$(APP)"
 ALL_PACKAGES=$(shell go list ./... | grep -v "vendor")
 
+LOCAL_CONFIG_FILE=local.env
+DOCKER_REGISTRY_USER_NAME=nsnikhil
 GRPC_SERVE_COMMAND=grpc-serve
 HTTP_SERVE_COMMAND=http-serve
 MIGRATE_COMMAND=migrate
@@ -38,6 +40,12 @@ compile:
 
 build: deps compile
 
+local-grpc-serve: build
+	$(APP_EXECUTABLE) -configFile=$(LOCAL_CONFIG_FILE) $(GRPC_SERVE_COMMAND)
+
+local-http-serve: build
+	$(APP_EXECUTABLE) -configFile=$(LOCAL_CONFIG_FILE) $(HTTP_SERVE_COMMAND)
+
 grpc-serve: build
 	$(APP_EXECUTABLE) -configFile=$(configFile) $(GRPC_SERVE_COMMAND)
 
@@ -45,11 +53,11 @@ http-serve: build
 	$(APP_EXECUTABLE) -configFile=$(configFile) $(HTTP_SERVE_COMMAND)
 
 docker-build:
-	docker build -t nsnikhil/$(APP):$(APP_VERSION) .
+	docker build -t $(DOCKER_REGISTRY_USER_NAME)/$(APP):$(APP_VERSION) .
 	docker rmi -f $$(docker images -f "dangling=true" -q)
 
 docker-push: docker-build
-	docker push nsnikhil/$(APP):$(APP_VERSION)
+	docker push $(DOCKER_REGISTRY_USER_NAME)/$(APP):$(APP_VERSION)
 
 clean:
 	rm -rf out/
