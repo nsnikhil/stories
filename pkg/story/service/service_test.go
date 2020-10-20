@@ -7,58 +7,49 @@ import (
 	"github.com/nsnikhil/stories/pkg/story/model"
 	"github.com/nsnikhil/stories/pkg/story/service"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
 
 func TestStoryServiceAddStory(t *testing.T) {
-	testCases := []struct {
-		name          string
-		actualResult  func() error
+	testCases := map[string]struct {
+		store         func() store.StoriesStore
 		expectedError error
 	}{
-		{
-			name: "test insert story success",
-			actualResult: func() error {
-				str, err := model.NewStoryBuilder().
-					SetTitle(100, "title").
-					SetBody(100, "test body").
-					Build()
-
-				require.NoError(t, err)
-
+		"test add story success": {
+			store: func() store.StoriesStore {
 				mst := &store.MockStoriesStore{}
-				mst.On("AddStory", str).Return("a45c9dac-56dc-4771-a3f4-f10ad30a20a5", nil)
+				mst.On("AddStory", mock.AnythingOfType("*model.Story")).Return("a45c9dac-56dc-4771-a3f4-f10ad30a20a5", nil)
 
-				sv := service.NewStoriesService(mst)
-
-				return sv.AddStory(str)
+				return mst
 			},
+			expectedError: nil,
 		},
-		{
-			name: "test insert story failure",
-			actualResult: func() error {
-				str, err := model.NewStoryBuilder().
-					SetTitle(100, "title").
-					SetBody(100, "test body").
-					Build()
-
-				require.NoError(t, err)
-
+		"test add story failure when dependency fails": {
+			store: func() store.StoriesStore {
 				mst := &store.MockStoriesStore{}
-				mst.On("AddStory", str).Return("", liberr.WithArgs(liberr.SeverityError, errors.New("failed to insert story")))
+				mst.On("AddStory", mock.AnythingOfType("*model.Story")).Return("", liberr.WithArgs(liberr.SeverityError, errors.New("failed to insert story")))
 
-				sv := service.NewStoriesService(mst)
-
-				return sv.AddStory(str)
+				return mst
 			},
 			expectedError: errors.New("failed to insert story"),
 		},
 	}
 
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			err := testCase.actualResult()
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			svc := service.NewStoriesService(testCase.store())
+
+			str, err := model.NewStoryBuilder().
+				SetTitle(100, "title").
+				SetBody(100, "test body").
+				Build()
+
+			require.NoError(t, err)
+
+			err = svc.AddStory(str)
+
 			if testCase.expectedError != nil {
 				assert.Equal(t, testCase.expectedError.Error(), err.Error())
 			} else {
@@ -69,31 +60,29 @@ func TestStoryServiceAddStory(t *testing.T) {
 }
 
 func TestStoryServiceGetStory(t *testing.T) {
-	testCases := []struct {
-		name           string
-		actualResult   func() (*model.Story, error)
-		expectedResult func() *model.Story
-		expectedError  error
+	testCases := map[string]struct {
+		input         func() (store.StoriesStore, string)
+		expectedStory func() *model.Story
+		expectedError error
 	}{
-		{
-			name: "test get story success",
-			actualResult: func() (*model.Story, error) {
+		"test get story success": {
+			input: func() (store.StoriesStore, string) {
+				id := "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
+
 				str, err := model.NewStoryBuilder().
 					SetTitle(100, "title").
 					SetBody(100, "test body").
 					Build()
 
 				require.NoError(t, err)
-				str.ID = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
+				str.ID = id
 
 				mst := &store.MockStoriesStore{}
-				mst.On("GetStories", []string{"2eaa0697-2572-47f9-bcff-0bdf0c7c6432"}).Return([]model.Story{*str}, nil)
+				mst.On("GetStories", []string{id}).Return([]model.Story{*str}, nil)
 
-				sv := service.NewStoriesService(mst)
-
-				return sv.GetStory("2eaa0697-2572-47f9-bcff-0bdf0c7c6432")
+				return mst, id
 			},
-			expectedResult: func() *model.Story {
+			expectedStory: func() *model.Story {
 				str, err := model.NewStoryBuilder().
 					SetTitle(100, "title").
 					SetBody(100, "test body").
@@ -105,26 +94,29 @@ func TestStoryServiceGetStory(t *testing.T) {
 				return str
 			},
 		},
-		{
-			name: "test get story failure",
-			actualResult: func() (*model.Story, error) {
+		"test get story failure": {
+			input: func() (store.StoriesStore, string) {
+				id := "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
+
 				mst := &store.MockStoriesStore{}
-				mst.On("GetStories", []string{"2eaa0697-2572-47f9-bcff-0bdf0c7c6432"}).Return([]model.Story{}, liberr.WithArgs(liberr.SeverityError, errors.New("failed to get story")))
+				mst.On("GetStories", []string{id}).Return([]model.Story{}, liberr.WithArgs(errors.New("failed to get story")))
 
-				sv := service.NewStoriesService(mst)
-
-				return sv.GetStory("2eaa0697-2572-47f9-bcff-0bdf0c7c6432")
+				return mst, id
 			},
-			expectedResult: func() *model.Story {
+			expectedStory: func() *model.Story {
 				return nil
 			},
 			expectedError: errors.New("failed to get story"),
 		},
 	}
 
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			res, err := testCase.actualResult()
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			st, id := testCase.input()
+
+			svc := service.NewStoriesService(st)
+
+			res, err := svc.GetStory(id)
 
 			if testCase.expectedError != nil {
 				assert.Equal(t, testCase.expectedError.Error(), err.Error())
@@ -132,21 +124,19 @@ func TestStoryServiceGetStory(t *testing.T) {
 				assert.Nil(t, err)
 			}
 
-			assert.Equal(t, testCase.expectedResult(), res)
+			assert.Equal(t, testCase.expectedStory(), res)
 		})
 	}
 }
 
 func TestStoryServiceUpdateStory(t *testing.T) {
-	testCases := []struct {
-		name           string
-		actualResult   func() (int64, error)
-		expectedResult int64
-		expectedError  error
+	testCases := map[string]struct {
+		input         func() (*model.Story, store.StoriesStore)
+		expectedCount int64
+		expectedError error
 	}{
-		{
-			name: "test update story success",
-			actualResult: func() (int64, error) {
+		"test update story success": {
+			input: func() (*model.Story, store.StoriesStore) {
 				str, err := model.NewStoryBuilder().
 					SetTitle(100, "title").
 					SetBody(100, "test body").
@@ -158,15 +148,12 @@ func TestStoryServiceUpdateStory(t *testing.T) {
 				mst := &store.MockStoriesStore{}
 				mst.On("UpdateStory", str).Return(int64(1), nil)
 
-				sv := service.NewStoriesService(mst)
-
-				return sv.UpdateStory(str)
+				return str, mst
 			},
-			expectedResult: 1,
+			expectedCount: 1,
 		},
-		{
-			name: "test update story failure",
-			actualResult: func() (int64, error) {
+		"test update story failure": {
+			input: func() (*model.Story, store.StoriesStore) {
 				str, err := model.NewStoryBuilder().
 					SetTitle(100, "title").
 					SetBody(100, "test body").
@@ -176,20 +163,22 @@ func TestStoryServiceUpdateStory(t *testing.T) {
 				str.ID = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
 
 				mst := &store.MockStoriesStore{}
-				mst.On("UpdateStory", str).Return(int64(0), liberr.WithArgs(liberr.SeverityError, errors.New("failed to update story")))
+				mst.On("UpdateStory", str).Return(int64(0), liberr.WithArgs(errors.New("failed to update story")))
 
-				sv := service.NewStoriesService(mst)
-
-				return sv.UpdateStory(str)
+				return str, mst
 			},
-			expectedResult: 0,
-			expectedError:  errors.New("failed to update story"),
+			expectedCount: 0,
+			expectedError: errors.New("failed to update story"),
 		},
 	}
 
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			res, err := testCase.actualResult()
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			st, str := testCase.input()
+
+			svc := service.NewStoriesService(str)
+
+			res, err := svc.UpdateStory(st)
 
 			if testCase.expectedError != nil {
 				assert.Equal(t, testCase.expectedError.Error(), err.Error())
@@ -197,64 +186,64 @@ func TestStoryServiceUpdateStory(t *testing.T) {
 				assert.Nil(t, err)
 			}
 
-			assert.Equal(t, testCase.expectedResult, res)
+			assert.Equal(t, testCase.expectedCount, res)
 		})
 	}
 }
 
 func TestStoryServiceDeleteStory(t *testing.T) {
-	testCases := []struct {
-		name           string
-		actualResult   func() (int64, error)
-		expectedResult int64
-		expectedError  error
+	testCases := map[string]struct {
+		input         func() (string, store.StoriesStore)
+		expectedCount int64
+		expectedError error
 	}{
-		{
-			name: "test delete story success",
-			actualResult: func() (int64, error) {
+		"test delete story success": {
+			input: func() (string, store.StoriesStore) {
+				id := "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
 				str, err := model.NewStoryBuilder().
 					SetTitle(100, "title").
 					SetBody(100, "test body").
 					Build()
 
 				require.NoError(t, err)
-				str.ID = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
+				str.ID = id
 
 				mst := &store.MockStoriesStore{}
 				mst.On("DeleteStory", str.GetID()).Return(int64(1), nil)
 
-				sv := service.NewStoriesService(mst)
-
-				return sv.DeleteStory(str.GetID())
+				return id, mst
 			},
-			expectedResult: 1,
+			expectedCount: 1,
 		},
-		{
-			name: "test delete story failure",
-			actualResult: func() (int64, error) {
+		"test delete story failure": {
+			input: func() (string, store.StoriesStore) {
+				id := "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
+
 				str, err := model.NewStoryBuilder().
 					SetTitle(100, "title").
 					SetBody(100, "test body").
 					Build()
 
 				require.NoError(t, err)
-				str.ID = "2eaa0697-2572-47f9-bcff-0bdf0c7c6432"
+				str.ID = id
 
 				mst := &store.MockStoriesStore{}
-				mst.On("DeleteStory", str.GetID()).Return(int64(0), liberr.WithArgs(liberr.SeverityError, errors.New("failed to delete story")))
+				mst.On("DeleteStory", str.GetID()).Return(int64(0), liberr.WithArgs(errors.New("failed to delete story")))
 
-				sv := service.NewStoriesService(mst)
-
-				return sv.DeleteStory(str.GetID())
+				return id, mst
 			},
-			expectedResult: 0,
-			expectedError:  errors.New("failed to delete story"),
+			expectedCount: 0,
+			expectedError: errors.New("failed to delete story"),
 		},
 	}
 
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			res, err := testCase.actualResult()
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			id, str := testCase.input()
+
+			svc := service.NewStoriesService(str)
+
+			res, err := svc.DeleteStory(id)
 
 			if testCase.expectedError != nil {
 				assert.Equal(t, testCase.expectedError.Error(), err.Error())
@@ -262,7 +251,7 @@ func TestStoryServiceDeleteStory(t *testing.T) {
 				assert.Nil(t, err)
 			}
 
-			assert.Equal(t, testCase.expectedResult, res)
+			assert.Equal(t, testCase.expectedCount, res)
 		})
 	}
 }
@@ -272,15 +261,13 @@ func TestStoryServiceSearchStories(t *testing.T) {
 }
 
 func TestStoryServiceGetMostViewsStories(t *testing.T) {
-	testCases := []struct {
-		name           string
-		actualResult   func() ([]model.Story, error)
+	testCases := map[string]struct {
+		input          func() (int, int, store.StoriesStore)
 		expectedResult func() []model.Story
 		expectedError  error
 	}{
-		{
-			name: "test get most viewed story success",
-			actualResult: func() ([]model.Story, error) {
+		"test get most viewed story success": {
+			input: func() (int, int, store.StoriesStore) {
 				str, err := model.NewStoryBuilder().
 					SetTitle(100, "title").
 					SetBody(100, "test body").
@@ -292,9 +279,7 @@ func TestStoryServiceGetMostViewsStories(t *testing.T) {
 				mst := &store.MockStoriesStore{}
 				mst.On("GetMostViewsStories", 0, 1).Return([]model.Story{*str}, nil)
 
-				sv := service.NewStoriesService(mst)
-
-				return sv.GetMostViewsStories(0, 1)
+				return 0, 1, mst
 			},
 			expectedResult: func() []model.Story {
 				str, err := model.NewStoryBuilder().
@@ -308,15 +293,12 @@ func TestStoryServiceGetMostViewsStories(t *testing.T) {
 				return []model.Story{*str}
 			},
 		},
-		{
-			name: "test get most viewed story failure",
-			actualResult: func() ([]model.Story, error) {
+		"test get most viewed story failure": {
+			input: func() (int, int, store.StoriesStore) {
 				mst := &store.MockStoriesStore{}
 				mst.On("GetMostViewsStories", 0, 1).Return([]model.Story{}, liberr.WithArgs(liberr.SeverityError, errors.New("failed to get most viewed story")))
 
-				sv := service.NewStoriesService(mst)
-
-				return sv.GetMostViewsStories(0, 1)
+				return 0, 1, mst
 			},
 			expectedResult: func() []model.Story {
 				return nil
@@ -325,9 +307,13 @@ func TestStoryServiceGetMostViewsStories(t *testing.T) {
 		},
 	}
 
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			res, err := testCase.actualResult()
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			o, l, st := testCase.input()
+
+			svc := service.NewStoriesService(st)
+
+			res, err := svc.GetMostViewsStories(o, l)
 
 			if testCase.expectedError != nil {
 				assert.Equal(t, testCase.expectedError.Error(), err.Error())
@@ -341,15 +327,13 @@ func TestStoryServiceGetMostViewsStories(t *testing.T) {
 }
 
 func TestStoryServiceGetTopRatedStories(t *testing.T) {
-	testCases := []struct {
-		name           string
-		actualResult   func() ([]model.Story, error)
+	testCases := map[string]struct {
+		input          func() (int, int, store.StoriesStore)
 		expectedResult func() []model.Story
 		expectedError  error
 	}{
-		{
-			name: "test get top rated story success",
-			actualResult: func() ([]model.Story, error) {
+		"test get top rated story success": {
+			input: func() (int, int, store.StoriesStore) {
 				str, err := model.NewStoryBuilder().
 					SetTitle(100, "title").
 					SetBody(100, "test body").
@@ -361,9 +345,7 @@ func TestStoryServiceGetTopRatedStories(t *testing.T) {
 				mst := &store.MockStoriesStore{}
 				mst.On("GetTopRatedStories", 0, 1).Return([]model.Story{*str}, nil)
 
-				sv := service.NewStoriesService(mst)
-
-				return sv.GetTopRatedStories(0, 1)
+				return 0, 1, mst
 			},
 			expectedResult: func() []model.Story {
 				str, err := model.NewStoryBuilder().
@@ -377,15 +359,12 @@ func TestStoryServiceGetTopRatedStories(t *testing.T) {
 				return []model.Story{*str}
 			},
 		},
-		{
-			name: "test get top rated story failure",
-			actualResult: func() ([]model.Story, error) {
+		"test get top rated story failure": {
+			input: func() (int, int, store.StoriesStore) {
 				mst := &store.MockStoriesStore{}
 				mst.On("GetTopRatedStories", 0, 1).Return([]model.Story{}, liberr.WithArgs(liberr.SeverityError, errors.New("failed to get top rated story")))
 
-				sv := service.NewStoriesService(mst)
-
-				return sv.GetTopRatedStories(0, 1)
+				return 0, 1, mst
 			},
 			expectedResult: func() []model.Story {
 				return nil
@@ -394,9 +373,13 @@ func TestStoryServiceGetTopRatedStories(t *testing.T) {
 		},
 	}
 
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			res, err := testCase.actualResult()
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			o, l, st := testCase.input()
+
+			svc := service.NewStoriesService(st)
+
+			res, err := svc.GetTopRatedStories(o, l)
 
 			if testCase.expectedError != nil {
 				assert.Equal(t, testCase.expectedError.Error(), err.Error())

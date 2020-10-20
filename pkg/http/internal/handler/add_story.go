@@ -19,22 +19,21 @@ func (ash *AddStoryHandler) AddStory(resp http.ResponseWriter, req *http.Request
 	var data contract.AddStoryRequest
 	err := util.ParseRequest(req, &data)
 	if err != nil {
-		return liberr.WithOperation("AddStoryHandler.AddStory", err)
+		return liberr.WithArgs(liberr.Operation("AddStoryHandler.AddStory"), err)
 	}
 
-	// TODO: SHOULD THIS BE IN SERVICE OR HANDLER
 	st, err := model.NewStoryBuilder().
 		SetTitle(ash.cfg.TitleMaxLength(), data.Title).
 		SetBody(ash.cfg.BodyMaxLength(), data.Body).
 		Build()
 
 	if err != nil {
-		return liberr.WithOperation("AddStoryHandler.AddStory", err)
+		return liberr.WithArgs(liberr.Operation("AddStoryHandler.AddStory"), err)
 	}
 
 	err = ash.svc.AddStory(st)
 	if err != nil {
-		return liberr.WithOperation("AddStoryHandler.AddStory", err)
+		return liberr.WithArgs(liberr.Operation("AddStoryHandler.AddStory"), err)
 	}
 
 	//TODO: ADD SUCCESS LOG

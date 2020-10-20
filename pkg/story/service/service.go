@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"github.com/nsnikhil/stories/pkg/liberr"
 	"github.com/nsnikhil/stories/pkg/store"
 	"github.com/nsnikhil/stories/pkg/story/model"
@@ -30,7 +29,7 @@ type defaultStoriesService struct {
 func (dss *defaultStoriesService) AddStory(story *model.Story) error {
 	_, err := dss.store.AddStory(story)
 	if err != nil {
-		return liberr.WithOperation(op("AddStory"), err)
+		return liberr.WithArgs(liberr.Operation("StoryService.AddStory"), err)
 	}
 
 	return nil
@@ -39,7 +38,7 @@ func (dss *defaultStoriesService) AddStory(story *model.Story) error {
 func (dss *defaultStoriesService) GetStory(storyID string) (*model.Story, error) {
 	stories, err := dss.store.GetStories(storyID)
 	if err != nil {
-		return nil, liberr.WithOperation(op("GetStory"), err)
+		return nil, liberr.WithArgs(liberr.Operation("StoryService.GetStory"), err)
 	}
 
 	return &stories[0], nil
@@ -48,7 +47,7 @@ func (dss *defaultStoriesService) GetStory(storyID string) (*model.Story, error)
 func (dss *defaultStoriesService) UpdateStory(story *model.Story) (int64, error) {
 	c, err := dss.store.UpdateStory(story)
 	if err != nil {
-		return 0, liberr.WithOperation(op("UpdateStory"), err)
+		return 0, liberr.WithArgs(liberr.Operation("StoryService.UpdateStory"), err)
 	}
 
 	return c, err
@@ -57,7 +56,7 @@ func (dss *defaultStoriesService) UpdateStory(story *model.Story) (int64, error)
 func (dss *defaultStoriesService) DeleteStory(storyID string) (int64, error) {
 	c, err := dss.store.DeleteStory(storyID)
 	if err != nil {
-		return 0, liberr.WithOperation(op("DeleteStory"), err)
+		return 0, liberr.WithArgs(liberr.Operation("StoryService.DeleteStory"), err)
 	}
 
 	return c, err
@@ -71,7 +70,7 @@ func (dss *defaultStoriesService) SearchStories(query string) ([]model.Story, er
 func (dss *defaultStoriesService) GetMostViewsStories(offset, limit int) ([]model.Story, error) {
 	res, err := dss.store.GetMostViewsStories(offset, limit)
 	if err != nil {
-		return nil, liberr.WithOperation(op("GetMostViewsStories"), err)
+		return nil, liberr.WithArgs(liberr.Operation("StoryService.GetMostViewsStories"), err)
 	}
 
 	return res, nil
@@ -80,15 +79,10 @@ func (dss *defaultStoriesService) GetMostViewsStories(offset, limit int) ([]mode
 func (dss *defaultStoriesService) GetTopRatedStories(offset, limit int) ([]model.Story, error) {
 	res, err := dss.store.GetTopRatedStories(offset, limit)
 	if err != nil {
-		return nil, liberr.WithOperation(op("GetTopRatedStories"), err)
+		return nil, liberr.WithArgs(liberr.Operation("StoryService.GetTopRatedStories"), err)
 	}
 
 	return res, nil
-}
-
-//TODO: REMOVE THIS HELPER FUNCTION
-func op(co string) liberr.Operation {
-	return liberr.Operation(fmt.Sprintf("StoryService.%s", co))
 }
 
 func NewStoriesService(store store.StoriesStore) StoryService {

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/nsnikhil/stories/pkg/config"
+	"github.com/nsnikhil/stories/pkg/liberr"
 	"github.com/nsnikhil/stories/pkg/store"
 	"github.com/nsnikhil/stories/pkg/story/model"
 	"github.com/stretchr/testify/assert"
@@ -16,77 +17,75 @@ func TestStoriesStoreAddStory(t *testing.T) {
 	db := getDB(t)
 	str := store.NewStoriesStore(db)
 
-	testCases := []struct {
-		name          string
-		actualResult  func() (string, error)
+	testCases := map[string]struct {
+		story         func() *model.Story
 		expectedError error
 	}{
-		{
-			name: "test insert story in db",
-			actualResult: func() (string, error) {
-				st, err := model.NewStoryBuilder().
-					SetTitle(100, "title").
-					SetBody(100, "this is a body").
-					Build()
 
+		"test insert story in db": {
+			story: func() *model.Story {
+				st, err := model.NewStoryBuilder().SetTitle(100, "title").SetBody(100, "this is a body").Build()
 				require.NoError(t, err)
 
-				id, err := str.AddStory(st)
-
-				truncate(t, db)
-
-				return id, err
+				return st
 			},
 		},
-		{
-			name: "test insert story fails due to empty title",
-			actualResult: func() (string, error) {
-				st, err := model.NewStoryBuilder().
-					SetTitle(100, "one").
-					SetBody(100, "this is a story one").
-					Build()
 
+		"test insert story fails due to empty title": {
+			story: func() *model.Story {
+				st, err := model.NewStoryBuilder().SetTitle(100, "one").SetBody(100, "this is a story one").Build()
 				require.NoError(t, err)
 
 				st.Title = ""
-				id, err := str.AddStory(st)
-
-				return id, err
+				return st
 			},
-			expectedError: errors.New("pq: new row for relation \"stories\" violates check constraint \"stories_title_check\""),
+			expectedError: liberr.WithArgs(
+				liberr.Operation("StoriesStore.AddStory.db.QueryRow"),
+				liberr.InternalError,
+				liberr.SeverityError,
+				errors.New("pq: new row for relation \"stories\" violates check constraint \"stories_title_check\""),
+			),
 		},
-		{
-			name: "test insert story fails due to empty body",
-			actualResult: func() (string, error) {
-				st, err := model.NewStoryBuilder().
-					SetTitle(100, "one").
-					SetBody(100, "this is a story one").
-					Build()
 
+		"test insert story fails due to empty body": {
+			story: func() *model.Story {
+				st, err := model.NewStoryBuilder().SetTitle(100, "one").SetBody(100, "this is a story one").Build()
 				require.NoError(t, err)
 
 				st.Body = ""
-				id, err := str.AddStory(st)
-
-				return id, err
+				return st
 			},
-			expectedError: errors.New("pq: new row for relation \"stories\" violates check constraint \"stories_body_check\""),
+			expectedError: liberr.WithArgs(
+				liberr.Operation("StoriesStore.AddStory.db.QueryRow"),
+				liberr.InternalError,
+				liberr.SeverityError,
+				errors.New("pq: new row for relation \"stories\" violates check constraint \"stories_body_check\""),
+			),
 		},
 	}
 
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			res, err := testCase.actualResult()
-
-			if testCase.expectedError == nil {
-				assert.True(t, isValidUUID(res))
-				assert.Nil(t, err)
-			} else {
-				assert.Equal(t, testCase.expectedError.Error(), err.Error())
-				assert.Equal(t, "", res)
-			}
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			testAddStory(t, testCase.expectedError, testCase.story(), db, str)
 		})
 	}
+}
+
+func testAddStory(t *testing.T, expectedError error, st *model.Story, db *sql.DB, str store.StoriesStore) {
+	id, err := str.AddStory(st)
+	truncate(t, db)
+
+	if expectedError == nil {
+		assert.True(t, isValidUUID(id))
+		assert.Nil(t, err)
+		return
+	}
+
+	nt, ok := err.(*liberr.Error)
+	assert.True(t, ok)
+
+	assert.Equal(t, expectedError.Error(), nt.Error())
+	assert.Equal(t, "", id)
 }
 
 func TestGetStories(t *testing.T) {

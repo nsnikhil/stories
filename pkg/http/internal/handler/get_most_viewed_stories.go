@@ -16,12 +16,12 @@ func (gmh *GetMostViewedStoriesHandler) GetMostViewedStories(resp http.ResponseW
 	var data contract.MostViewedStoriesRequest
 	err := util.ParseRequest(req, &data)
 	if err != nil {
-		return liberr.WithOperation("GetMostViewedStoriesHandler.GetMostViewedStories", err)
+		return liberr.WithArgs(liberr.Operation("GetMostViewedStoriesHandler.GetMostViewedStories"), err)
 	}
 
 	dss, err := gmh.svc.GetMostViewsStories(data.OffSet, data.Limit)
 	if err != nil {
-		return liberr.WithOperation("GetMostViewedStoriesHandler.GetMostViewedStories", err)
+		return liberr.WithArgs(liberr.Operation("GetMostViewedStoriesHandler.GetMostViewedStories"), err)
 	}
 
 	// TODO: UNIFY BELOW LOGIC WITH TOP RATED HANDLER

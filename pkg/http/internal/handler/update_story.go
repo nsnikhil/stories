@@ -18,17 +18,17 @@ func (ush *UpdateStoryHandler) UpdateStory(resp http.ResponseWriter, req *http.R
 	var data contract.UpdateStoryRequest
 	err := util.ParseRequest(req, &data)
 	if err != nil {
-		return liberr.WithOperation("UpdateStoryHandler.UpdateStory", err)
+		return liberr.WithArgs(liberr.Operation("UpdateStoryHandler.UpdateStory"), err)
 	}
 
 	st, err := util.ConvertToDAO(ush.cfg.TitleMaxLength(), ush.cfg.BodyMaxLength(), data.Story)
 	if err != nil {
-		return liberr.WithOperation("UpdateStoryHandler.UpdateStory.ConvertToDAO", err)
+		return liberr.WithArgs(liberr.Operation("UpdateStoryHandler.UpdateStory.ConvertToDAO"), err)
 	}
 
 	_, err = ush.svc.UpdateStory(st)
 	if err != nil {
-		return liberr.WithOperation("UpdateStoryHandler.UpdateStory", err)
+		return liberr.WithArgs(liberr.Operation("UpdateStoryHandler.UpdateStory"), err)
 	}
 
 	//TODO: ADD SUCCESS LOG

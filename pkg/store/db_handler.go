@@ -7,17 +7,15 @@ import (
 	"time"
 )
 
-const ()
-
 type DBHandler interface {
 	GetDB() (*sql.DB, error)
 }
 
-type defaultDBHandler struct {
+type sqlDBHandler struct {
 	cfg config.DatabaseConfig
 }
 
-func (dbh *defaultDBHandler) GetDB() (*sql.DB, error) {
+func (dbh *sqlDBHandler) GetDB() (*sql.DB, error) {
 	db, err := sql.Open(dbh.cfg.DriverName(), dbh.cfg.Source())
 	if err != nil {
 		return nil, liberr.WithArgs(liberr.Operation("DBHandler.GetDB.sql.Open"), liberr.SeverityError, err)
@@ -35,7 +33,7 @@ func (dbh *defaultDBHandler) GetDB() (*sql.DB, error) {
 }
 
 func NewDBHandler(cfg config.DatabaseConfig) DBHandler {
-	return &defaultDBHandler{
+	return &sqlDBHandler{
 		cfg: cfg,
 	}
 }

@@ -16,12 +16,12 @@ func (gs *GetStoryHandler) GetStory(resp http.ResponseWriter, req *http.Request)
 	var data contract.GetStoryRequest
 	err := util.ParseRequest(req, &data)
 	if err != nil {
-		return liberr.WithOperation("GetStoryHandler.GetStory", err)
+		return liberr.WithArgs(liberr.Operation("GetStoryHandler.GetStory"), err)
 	}
 
 	st, err := gs.svc.GetStory(data.StoryID)
 	if err != nil {
-		return liberr.WithOperation("GetStoryHandler.GetStory", err)
+		return liberr.WithArgs(liberr.Operation("GetStoryHandler.GetStory"), err)
 	}
 
 	//TODO: ADD SUCCESS LOG

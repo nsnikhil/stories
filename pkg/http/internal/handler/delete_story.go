@@ -16,12 +16,12 @@ func (dsh *DeleteStoryHandler) DeleteStory(resp http.ResponseWriter, req *http.R
 	var data contract.DeleteStoryRequest
 	err := util.ParseRequest(req, &data)
 	if err != nil {
-		return liberr.WithOperation("DeleteStoryHandler.DeleteStory", err)
+		return liberr.WithArgs(liberr.Operation("DeleteStoryHandler.DeleteStory"), err)
 	}
 
 	_, err = dsh.svc.DeleteStory(data.StoryID)
 	if err != nil {
-		return liberr.WithOperation("DeleteStoryHandler.DeleteStory", err)
+		return liberr.WithArgs(liberr.Operation("DeleteStoryHandler.DeleteStory"), err)
 	}
 
 	//TODO: ADD SUCCESS LOG

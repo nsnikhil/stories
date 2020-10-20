@@ -3,44 +3,41 @@ package store_test
 import (
 	"errors"
 	"github.com/nsnikhil/stories/pkg/config"
+	"github.com/nsnikhil/stories/pkg/liberr"
 	"github.com/nsnikhil/stories/pkg/store"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestGetDB(t *testing.T) {
-	testCases := []struct {
-		name          string
-		actualResult  func() error
+	testCases := map[string]struct {
+		dbConfig      config.DatabaseConfig
 		expectedError error
 	}{
-		{
-			name: "test get db success",
-			actualResult: func() error {
-				handler := store.NewDBHandler(config.NewConfig("../../local.env").DatabaseConfig())
-				_, err := handler.GetDB()
-				return err
-			},
+		"test get db success": {
+			dbConfig:      config.NewConfig("../../local.env").DatabaseConfig(),
 			expectedError: nil,
 		},
-		{
-			name: "test get db failure invalid driver",
-			actualResult: func() error {
-				handler := store.NewDBHandler(config.DatabaseConfig{})
-				_, err := handler.GetDB()
-				return err
-			},
-			expectedError: errors.New("sql: unknown driver \"\" (forgotten import?)"),
+		"test get db failure invalid config": {
+			dbConfig:      config.DatabaseConfig{},
+			expectedError: liberr.WithArgs(liberr.Operation("DBHandler.GetDB.sql.Open"), liberr.SeverityError, errors.New("sql: unknown driver \"\" (forgotten import?)")),
 		},
 	}
 
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			if testCase.expectedError == nil {
-				assert.Nil(t, testCase.actualResult())
-			} else {
-				assert.Equal(t, testCase.expectedError.Error(), testCase.actualResult().Error())
-			}
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			testDBHandler(t, testCase.expectedError, testCase.dbConfig)
 		})
+	}
+}
+
+func testDBHandler(t *testing.T, expectedError error, cfg config.DatabaseConfig) {
+	handler := store.NewDBHandler(cfg)
+	_, err := handler.GetDB()
+
+	if expectedError != nil {
+		assert.Equal(t, expectedError, err)
+	} else {
+		assert.Nil(t, err)
 	}
 }

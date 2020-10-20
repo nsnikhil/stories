@@ -19,52 +19,24 @@ import (
 func TestWithErrorHandling(t *testing.T) {
 	testCases := []struct {
 		name           string
-		actualResult   func() (string, int, string)
+		handler        func(resp http.ResponseWriter, req *http.Request) error
 		expectedResult string
 		expectedCode   int
 		expectedLog    string
 	}{
 		{
 			name: "test error middleware with typed error",
-			actualResult: func() (string, int, string) {
-				w := httptest.NewRecorder()
-				r, err := http.NewRequest(http.MethodGet, "/random", nil)
-				require.NoError(t, err)
-
-				th := func(resp http.ResponseWriter, req *http.Request) error {
-					return liberr.WithArgs(liberr.SeverityError, liberr.Operation("database.duplicated_record"), liberr.ValidationError, errors.New("some error"))
-				}
-
-				buf := new(bytes.Buffer)
-
-				lgr := reporters.NewLogger("dev", "debug", buf)
-
-				middleware.WithError(lgr, th)(w, r)
-
-				return w.Body.String(), w.Code, buf.String()
+			handler: func(resp http.ResponseWriter, req *http.Request) error {
+				return liberr.WithArgs(liberr.SeverityError, liberr.Operation("database.duplicated_record"), liberr.ValidationError, errors.New("some error"))
 			},
 			expectedResult: "{\"error\":{\"message\":\"some error\"},\"success\":false}",
 			expectedCode:   http.StatusBadRequest,
-			expectedLog:    "kind: validationError  operations: [database.duplicated_record]  severity: error  cause: some error",
+			expectedLog:    "kind: validationError  operations: database.duplicated_record  severity: error  cause: some error",
 		},
 		{
 			name: "test error middleware with error",
-			actualResult: func() (string, int, string) {
-				w := httptest.NewRecorder()
-				r, err := http.NewRequest(http.MethodGet, "/random", nil)
-				require.NoError(t, err)
-
-				th := func(resp http.ResponseWriter, req *http.Request) error {
-					return errors.New("some random error")
-				}
-
-				buf := new(bytes.Buffer)
-
-				lgr := reporters.NewLogger("dev", "debug", buf)
-
-				middleware.WithError(lgr, th)(w, r)
-
-				return w.Body.String(), w.Code, buf.String()
+			handler: func(resp http.ResponseWriter, req *http.Request) error {
+				return errors.New("some random error")
 			},
 			expectedResult: "{\"error\":{\"message\":\"internal server error\"},\"success\":false}",
 			expectedCode:   http.StatusInternalServerError,
@@ -72,24 +44,10 @@ func TestWithErrorHandling(t *testing.T) {
 		},
 		{
 			name: "test error middleware with no error",
-			actualResult: func() (string, int, string) {
-				w := httptest.NewRecorder()
-				r, err := http.NewRequest(http.MethodGet, "/random", nil)
-				require.NoError(t, err)
-
-				th := func(resp http.ResponseWriter, req *http.Request) error {
-					resp.WriteHeader(http.StatusOK)
-					_, _ = resp.Write([]byte("success"))
-					return nil
-				}
-
-				buf := new(bytes.Buffer)
-
-				lgr := reporters.NewLogger("dev", "debug", buf)
-
-				middleware.WithError(lgr, th)(w, r)
-
-				return w.Body.String(), w.Code, buf.String()
+			handler: func(resp http.ResponseWriter, req *http.Request) error {
+				resp.WriteHeader(http.StatusOK)
+				_, _ = resp.Write([]byte("success"))
+				return nil
 			},
 			expectedResult: "success",
 			expectedCode:   http.StatusOK,
@@ -99,15 +57,27 @@ func TestWithErrorHandling(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			res, code, lg := testCase.actualResult()
-
-			assert.Equal(t, testCase.expectedCode, code)
-			assert.Equal(t, testCase.expectedResult, res)
-
-			if len(testCase.expectedLog) != 0 {
-				assert.True(t, strings.Contains(lg, testCase.expectedLog))
-			}
+			testWithError(t, testCase.expectedCode, testCase.expectedResult, testCase.expectedLog, testCase.handler)
 		})
+	}
+}
+
+func testWithError(t *testing.T, expectedCode int, expectedBody, expectedLog string, h func(http.ResponseWriter, *http.Request) error) {
+	w := httptest.NewRecorder()
+	r, err := http.NewRequest(http.MethodGet, "/random", nil)
+	require.NoError(t, err)
+
+	buf := new(bytes.Buffer)
+
+	lgr := reporters.NewLogger("dev", "debug", buf)
+
+	middleware.WithError(lgr, h)(w, r)
+
+	assert.Equal(t, expectedCode, w.Code)
+	assert.Equal(t, expectedBody, w.Body.String())
+
+	if len(expectedLog) != 0 {
+		assert.True(t, strings.Contains(buf.String(), expectedLog))
 	}
 }
 
