@@ -13,6 +13,7 @@ import (
 	"github.com/nsnikhil/stories/pkg/story/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -20,29 +21,18 @@ import (
 )
 
 func TestGetTopRatedStories(t *testing.T) {
-	lgr := reporters.NewLogger("dev", "debug")
-
-	testCases := []struct {
-		name           string
-		actualResult   func() (string, int)
+	testCases := map[string]struct {
+		input          func() (service.StoryService, io.Reader)
 		expectedResult string
 		expectedCode   int
 	}{
-		{
-			name: "test get top rated stories success",
-			actualResult: func() (string, int) {
+		"test get top rated stories success": {
+			input: func() (service.StoryService, io.Reader) {
 				o, l := 10, 0
 
-				tpReq := contract.TopRatedStoriesRequest{
-					OffSet: o,
-					Limit:  l,
-				}
-
+				tpReq := contract.TopRatedStoriesRequest{OffSet: o, Limit: l}
 				b, err := json.Marshal(tpReq)
 				require.NoError(t, err)
-
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodGet, "/story/top-rated", bytes.NewBuffer(b))
 
 				createdAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
 				updatedAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
@@ -57,72 +47,58 @@ func TestGetTopRatedStories(t *testing.T) {
 					SetCreatedAt(createdAt).
 					SetUpdatedAt(updatedAt).
 					Build()
-
 				require.NoError(t, err)
 
 				ms := &service.MockStoriesService{}
 				ms.On("GetTopRatedStories", o, l).Return([]model.Story{*st}, nil)
 
-				mvh := handler.NewGetTopRatedStoriesHandler(ms)
-
-				mdl.WithError(lgr, mvh.GetTopRatedStories)(w, r)
-
-				return w.Body.String(), w.Code
+				return ms, bytes.NewBuffer(b)
 			},
 			expectedCode:   http.StatusOK,
 			expectedResult: "{\"data\":[{\"id\":\"adbca278-7e5c-4831-bf90-15fadfda0dd1\",\"title\":\"title\",\"body\":\"test body\",\"view_count\":25,\"up_votes\":10,\"down_votes\":2,\"created_at\":1596038400,\"updated_at\":1596038400}],\"success\":true}",
 		},
-		{
-			name: "test get top rated stories failure when req body is nil",
-			actualResult: func() (string, int) {
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodGet, "/story/top-rated", nil)
-
-				mvh := handler.NewGetTopRatedStoriesHandler(&service.MockStoriesService{})
-
-				mdl.WithError(lgr, mvh.GetTopRatedStories)(w, r)
-
-				return w.Body.String(), w.Code
+		"test get top rated stories failure when req body is nil": {
+			input: func() (service.StoryService, io.Reader) {
+				return &service.MockStoriesService{}, nil
 			},
 			expectedCode:   http.StatusBadRequest,
 			expectedResult: "{\"error\":{\"message\":\"unexpected end of JSON input\"},\"success\":false}",
 		},
-		{
-			name: "test get top rated stories failure when svc call fails",
-			actualResult: func() (string, int) {
+		"test get top rated stories failure when svc call fails": {
+			input: func() (service.StoryService, io.Reader) {
 				o, l := 10, 0
 
-				mvReq := contract.TopRatedStoriesRequest{
-					OffSet: o,
-					Limit:  l,
-				}
-
-				b, err := json.Marshal(mvReq)
+				tpReq := contract.TopRatedStoriesRequest{OffSet: o, Limit: l}
+				b, err := json.Marshal(tpReq)
 				require.NoError(t, err)
-
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodGet, "/story/top-rated", bytes.NewBuffer(b))
 
 				ms := &service.MockStoriesService{}
 				ms.On("GetTopRatedStories", o, l).Return([]model.Story{}, liberr.WithArgs(liberr.SeverityError, errors.New("failed to get top rated stories")))
 
-				mvh := handler.NewGetTopRatedStoriesHandler(ms)
-
-				mdl.WithError(lgr, mvh.GetTopRatedStories)(w, r)
-
-				return w.Body.String(), w.Code
+				return ms, bytes.NewBuffer(b)
 			},
 			expectedCode:   http.StatusInternalServerError,
 			expectedResult: "{\"error\":{\"message\":\"internal server error\"},\"success\":false}",
 		},
 	}
 
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			res, code := testCase.actualResult()
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			svc, body := testCase.input()
 
-			assert.Equal(t, testCase.expectedCode, code)
-			assert.Equal(t, testCase.expectedResult, res)
+			testGetTopRatedStories(t, testCase.expectedCode, testCase.expectedResult, svc, body)
 		})
 	}
+}
+
+func testGetTopRatedStories(t *testing.T, expectedCode int, expectedBody string, svc service.StoryService, body io.Reader) {
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/story/top-rated", body)
+
+	trh := handler.NewGetTopRatedStoriesHandler(svc)
+
+	mdl.WithError(reporters.NewLogger("dev", "debug"), trh.GetTopRatedStories)(w, r)
+
+	assert.Equal(t, expectedCode, w.Code)
+	assert.Equal(t, expectedBody, w.Body.String())
 }

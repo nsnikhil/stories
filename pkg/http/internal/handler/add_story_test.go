@@ -10,160 +10,100 @@ import (
 	mdl "github.com/nsnikhil/stories/pkg/http/internal/middleware"
 	"github.com/nsnikhil/stories/pkg/liberr"
 	reporters "github.com/nsnikhil/stories/pkg/reporting"
-	"github.com/nsnikhil/stories/pkg/story/model"
 	"github.com/nsnikhil/stories/pkg/story/service"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
 func TestAddStory(t *testing.T) {
-	cfg := config.NewConfig("../../../../local.env")
-	lgr := reporters.NewLogger("dev", "debug")
-
-	testCases := []struct {
-		name           string
-		actualResult   func() (string, int)
+	testCases := map[string]struct {
+		input          func() (service.StoryService, io.Reader)
 		expectedResult string
 		expectedCode   int
 	}{
-		{
-			name: "test add story success",
-			actualResult: func() (string, int) {
-				reqSt := contract.AddStoryRequest{
-					Title: "title",
-					Body:  "test body",
-				}
-
-				st, err := model.NewStoryBuilder().
-					SetTitle(100, "title").
-					SetBody(100, "test body").
-					Build()
-
-				require.NoError(t, err)
-
+		"test add story success": {
+			input: func() (service.StoryService, io.Reader) {
 				ms := &service.MockStoriesService{}
-				ms.On("AddStory", st).Return(nil)
+				ms.On("AddStory", mock.AnythingOfType("*model.Story")).Return(nil)
 
-				ah := handler.NewAddHandler(cfg.StoryConfig(), ms)
-
+				reqSt := contract.AddStoryRequest{Title: "title", Body: "test body"}
 				b, err := json.Marshal(&reqSt)
 				require.NoError(t, err)
 
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodPost, "/story/add", bytes.NewBuffer(b))
-
-				mdl.WithError(lgr, ah.AddStory)(w, r)
-
-				return w.Body.String(), w.Code
+				return ms, bytes.NewBuffer(b)
 			},
 			expectedCode:   http.StatusCreated,
 			expectedResult: "{\"data\":{\"success\":true},\"success\":true}",
 		},
-		{
-			name: "test add story fails when body is nil",
-			actualResult: func() (string, int) {
-				ah := handler.NewAddHandler(cfg.StoryConfig(), &service.MockStoriesService{})
-
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodPost, "/story/add", nil)
-
-				mdl.WithError(lgr, ah.AddStory)(w, r)
-
-				return w.Body.String(), w.Code
+		"test add story fails when body is nil": {
+			input: func() (service.StoryService, io.Reader) {
+				return &service.MockStoriesService{}, nil
 			},
 			expectedCode:   http.StatusBadRequest,
 			expectedResult: "{\"error\":{\"message\":\"unexpected end of JSON input\"},\"success\":false}",
 		},
-		{
-			name: "test add story failure when title is empty",
-			actualResult: func() (string, int) {
-				st := contract.AddStoryRequest{
-					Title: "",
-					Body:  "test body",
-				}
-
-				ah := handler.NewAddHandler(cfg.StoryConfig(), &service.MockStoriesService{})
-
+		"test add story failure when body is empty": {
+			input: func() (service.StoryService, io.Reader) {
+				st := contract.AddStoryRequest{Title: "title", Body: ""}
 				b, err := json.Marshal(&st)
 				require.NoError(t, err)
 
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodPost, "/story/add", bytes.NewBuffer(b))
-
-				mdl.WithError(lgr, ah.AddStory)(w, r)
-
-				return w.Body.String(), w.Code
-			},
-			expectedCode:   http.StatusBadRequest,
-			expectedResult: "{\"error\":{\"message\":\"title cannot be empty\"},\"success\":false}",
-		},
-		{
-			name: "test add story failure when body is empty",
-			actualResult: func() (string, int) {
-				st := contract.AddStoryRequest{
-					Title: "title",
-					Body:  "",
-				}
-
-				ah := handler.NewAddHandler(cfg.StoryConfig(), &service.MockStoriesService{})
-
-				b, err := json.Marshal(&st)
-				require.NoError(t, err)
-
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodPost, "/story/add", bytes.NewBuffer(b))
-
-				mdl.WithError(lgr, ah.AddStory)(w, r)
-
-				return w.Body.String(), w.Code
+				return &service.MockStoriesService{}, bytes.NewBuffer(b)
 			},
 			expectedCode:   http.StatusBadRequest,
 			expectedResult: "{\"error\":{\"message\":\"body cannot be empty\"},\"success\":false}",
 		},
-		{
-			name: "test add story failure when svc call fails",
-			actualResult: func() (string, int) {
-				reqSt := contract.AddStoryRequest{
-					Title: "title",
-					Body:  "test body",
-				}
-
-				st, err := model.NewStoryBuilder().
-					SetTitle(100, "title").
-					SetBody(100, "test body").
-					Build()
-
+		"test add story failure when title is empty": {
+			input: func() (service.StoryService, io.Reader) {
+				st := contract.AddStoryRequest{Title: "", Body: "test body"}
+				b, err := json.Marshal(&st)
 				require.NoError(t, err)
 
+				return &service.MockStoriesService{}, bytes.NewBuffer(b)
+			},
+			expectedCode:   http.StatusBadRequest,
+			expectedResult: "{\"error\":{\"message\":\"title cannot be empty\"},\"success\":false}",
+		},
+		"test add story failure when svc call fails": {
+			input: func() (service.StoryService, io.Reader) {
 				ms := &service.MockStoriesService{}
-				ms.On("AddStory", st).Return(liberr.WithArgs(liberr.SeverityError, errors.New("failed to add story")))
+				ms.On("AddStory", mock.AnythingOfType("*model.Story")).Return(liberr.WithArgs(liberr.SeverityError, errors.New("failed to add story")))
 
-				ah := handler.NewAddHandler(cfg.StoryConfig(), ms)
-
+				reqSt := contract.AddStoryRequest{Title: "title", Body: "test body"}
 				b, err := json.Marshal(&reqSt)
 				require.NoError(t, err)
 
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodPost, "/story/add", bytes.NewBuffer(b))
-
-				mdl.WithError(lgr, ah.AddStory)(w, r)
-
-				return w.Body.String(), w.Code
+				return ms, bytes.NewBuffer(b)
 			},
 			expectedCode:   http.StatusInternalServerError,
 			expectedResult: "{\"error\":{\"message\":\"internal server error\"},\"success\":false}",
 		},
 	}
 
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			res, code := testCase.actualResult()
-
-			assert.Equal(t, testCase.expectedCode, code)
-			assert.Equal(t, testCase.expectedResult, res)
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			svc, body := testCase.input()
+			testAddStoryHandler(t, testCase.expectedCode, testCase.expectedResult, svc, body)
 		})
 	}
+}
+
+func testAddStoryHandler(t *testing.T, expectedCode int, expectedBody string, svc service.StoryService, body io.Reader) {
+	cfg := config.NewConfig("../../../../local.env")
+
+	ah := handler.NewAddHandler(cfg.StoryConfig(), svc)
+
+	r := httptest.NewRequest(http.MethodPost, "/story/add", body)
+
+	w := httptest.NewRecorder()
+
+	mdl.WithError(reporters.NewLogger("dev", "debug"), ah.AddStory)(w, r)
+
+	assert.Equal(t, expectedCode, w.Code)
+	assert.Equal(t, expectedBody, w.Body.String())
 }

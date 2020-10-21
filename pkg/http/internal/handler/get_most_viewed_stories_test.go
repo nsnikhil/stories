@@ -13,6 +13,7 @@ import (
 	"github.com/nsnikhil/stories/pkg/story/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -20,29 +21,18 @@ import (
 )
 
 func TestGetMostViewedStories(t *testing.T) {
-	lgr := reporters.NewLogger("dev", "debug")
-
-	testCases := []struct {
-		name           string
-		actualResult   func() (string, int)
+	testCases := map[string]struct {
+		input          func() (service.StoryService, io.Reader)
 		expectedResult string
 		expectedCode   int
 	}{
-		{
-			name: "test get most viewed stories success",
-			actualResult: func() (string, int) {
+		"test get most viewed stories success": {
+			input: func() (service.StoryService, io.Reader) {
 				o, l := 10, 0
 
-				mvReq := contract.MostViewedStoriesRequest{
-					OffSet: o,
-					Limit:  l,
-				}
-
+				mvReq := contract.MostViewedStoriesRequest{OffSet: o, Limit: l}
 				b, err := json.Marshal(mvReq)
 				require.NoError(t, err)
-
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodGet, "/story/most-viewed", bytes.NewBuffer(b))
 
 				createdAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
 				updatedAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
@@ -63,66 +53,52 @@ func TestGetMostViewedStories(t *testing.T) {
 				ms := &service.MockStoriesService{}
 				ms.On("GetMostViewsStories", o, l).Return([]model.Story{*st}, nil)
 
-				mvh := handler.NewGetMostViewedStoriesHandler(ms)
-
-				mdl.WithError(lgr, mvh.GetMostViewedStories)(w, r)
-
-				return w.Body.String(), w.Code
+				return ms, bytes.NewBuffer(b)
 			},
 			expectedCode:   http.StatusOK,
 			expectedResult: "{\"data\":[{\"id\":\"adbca278-7e5c-4831-bf90-15fadfda0dd1\",\"title\":\"title\",\"body\":\"test body\",\"view_count\":25,\"up_votes\":10,\"down_votes\":2,\"created_at\":1596038400,\"updated_at\":1596038400}],\"success\":true}",
 		},
-		{
-			name: "test get most viewed stories failure when req body is nil",
-			actualResult: func() (string, int) {
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodGet, "/story/most-viewed", nil)
-
-				mvh := handler.NewGetMostViewedStoriesHandler(&service.MockStoriesService{})
-
-				mdl.WithError(lgr, mvh.GetMostViewedStories)(w, r)
-
-				return w.Body.String(), w.Code
+		"test get most viewed stories failure when req body is nil": {
+			input: func() (service.StoryService, io.Reader) {
+				return &service.MockStoriesService{}, nil
 			},
 			expectedCode:   http.StatusBadRequest,
 			expectedResult: "{\"error\":{\"message\":\"unexpected end of JSON input\"},\"success\":false}",
 		},
-		{
-			name: "test get most viewed stories failure when svc call fails",
-			actualResult: func() (string, int) {
+		"test get most viewed stories failure when svc call fails": {
+			input: func() (service.StoryService, io.Reader) {
 				o, l := 10, 0
 
-				mvReq := contract.MostViewedStoriesRequest{
-					OffSet: o,
-					Limit:  l,
-				}
-
+				mvReq := contract.MostViewedStoriesRequest{OffSet: o, Limit: l}
 				b, err := json.Marshal(mvReq)
 				require.NoError(t, err)
-
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodGet, "/story/most-viewed", bytes.NewBuffer(b))
 
 				ms := &service.MockStoriesService{}
 				ms.On("GetMostViewsStories", o, l).Return([]model.Story{}, liberr.WithArgs(liberr.SeverityError, errors.New("failed to get most viewed stories")))
 
-				mvh := handler.NewGetMostViewedStoriesHandler(ms)
-
-				mdl.WithError(lgr, mvh.GetMostViewedStories)(w, r)
-
-				return w.Body.String(), w.Code
+				return ms, bytes.NewBuffer(b)
 			},
 			expectedCode:   http.StatusInternalServerError,
 			expectedResult: "{\"error\":{\"message\":\"internal server error\"},\"success\":false}",
 		},
 	}
 
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			res, code := testCase.actualResult()
-
-			assert.Equal(t, testCase.expectedCode, code)
-			assert.Equal(t, testCase.expectedResult, res)
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			svc, body := testCase.input()
+			testGetMostViewedStories(t, testCase.expectedCode, testCase.expectedResult, svc, body)
 		})
 	}
+}
+
+func testGetMostViewedStories(t *testing.T, expectedCode int, expectedBody string, svc service.StoryService, body io.Reader) {
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/story/most-viewed", body)
+
+	mvh := handler.NewGetMostViewedStoriesHandler(svc)
+
+	mdl.WithError(reporters.NewLogger("dev", "debug"), mvh.GetMostViewedStories)(w, r)
+
+	assert.Equal(t, expectedCode, w.Code)
+	assert.Equal(t, expectedBody, w.Body.String())
 }

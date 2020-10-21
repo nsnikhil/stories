@@ -12,28 +12,23 @@ import (
 	"github.com/nsnikhil/stories/pkg/story/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
 func TestDeleteStory(t *testing.T) {
-	lgr := reporters.NewLogger("dev", "debug")
-
-	testCases := []struct {
-		name           string
-		actualResult   func() (string, int)
+	testCases := map[string]struct {
+		input          func() (service.StoryService, io.Reader)
 		expectedResult string
 		expectedCode   int
 	}{
-		{
-			name: "test delete story success",
-			actualResult: func() (string, int) {
+		"test delete story success": {
+			input: func() (service.StoryService, io.Reader) {
 				id := "adbca278-7e5c-4831-bf90-15fadfda0dd1"
 
-				dlReq := contract.DeleteStoryRequest{
-					StoryID: id,
-				}
+				dlReq := contract.DeleteStoryRequest{StoryID: id}
 
 				b, err := json.Marshal(dlReq)
 				require.NoError(t, err)
@@ -41,41 +36,23 @@ func TestDeleteStory(t *testing.T) {
 				ms := &service.MockStoriesService{}
 				ms.On("DeleteStory", id).Return(int64(1), nil)
 
-				dh := handler.NewDeleteStoryHandler(ms)
-
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodDelete, "/story/delete", bytes.NewBuffer(b))
-
-				mdl.WithError(lgr, dh.DeleteStory)(w, r)
-
-				return w.Body.String(), w.Code
+				return ms, bytes.NewBuffer(b)
 			},
 			expectedCode:   http.StatusOK,
 			expectedResult: "{\"data\":{\"success\":true},\"success\":true}",
 		},
-		{
-			name: "test delete story failure when req body is nil",
-			actualResult: func() (string, int) {
-				dh := handler.NewDeleteStoryHandler(&service.MockStoriesService{})
-
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodDelete, "/story/delete", nil)
-
-				mdl.WithError(lgr, dh.DeleteStory)(w, r)
-
-				return w.Body.String(), w.Code
+		"test delete story failure when req body is nil": {
+			input: func() (service.StoryService, io.Reader) {
+				return &service.MockStoriesService{}, nil
 			},
 			expectedCode:   http.StatusBadRequest,
 			expectedResult: "{\"error\":{\"message\":\"unexpected end of JSON input\"},\"success\":false}",
 		},
-		{
-			name: "test delete story failure when svc call fails",
-			actualResult: func() (string, int) {
+		"test delete story failure when svc call fails": {
+			input: func() (service.StoryService, io.Reader) {
 				id := "adbca278-7e5c-4831-bf90-15fadfda0dd1"
 
-				dlReq := contract.DeleteStoryRequest{
-					StoryID: id,
-				}
+				dlReq := contract.DeleteStoryRequest{StoryID: id}
 
 				b, err := json.Marshal(dlReq)
 				require.NoError(t, err)
@@ -83,26 +60,30 @@ func TestDeleteStory(t *testing.T) {
 				ms := &service.MockStoriesService{}
 				ms.On("DeleteStory", id).Return(int64(0), liberr.WithArgs(liberr.SeverityError, errors.New("failed to delete story")))
 
-				dh := handler.NewDeleteStoryHandler(ms)
-
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodDelete, "/story/delete", bytes.NewBuffer(b))
-
-				mdl.WithError(lgr, dh.DeleteStory)(w, r)
-
-				return w.Body.String(), w.Code
+				return ms, bytes.NewBuffer(b)
 			},
 			expectedCode:   http.StatusInternalServerError,
 			expectedResult: "{\"error\":{\"message\":\"internal server error\"},\"success\":false}",
 		},
 	}
 
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			res, code := testCase.actualResult()
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			svc, body := testCase.input()
 
-			assert.Equal(t, testCase.expectedCode, code)
-			assert.Equal(t, testCase.expectedResult, res)
+			testDeleteStory(t, testCase.expectedCode, testCase.expectedResult, svc, body)
 		})
 	}
+}
+
+func testDeleteStory(t *testing.T, expectedCode int, expectedBody string, svc service.StoryService, body io.Reader) {
+	dh := handler.NewDeleteStoryHandler(svc)
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodDelete, "/story/delete", body)
+
+	mdl.WithError(reporters.NewLogger("dev", "debug"), dh.DeleteStory)(w, r)
+
+	assert.Equal(t, expectedCode, w.Code)
+	assert.Equal(t, expectedBody, w.Body.String())
 }

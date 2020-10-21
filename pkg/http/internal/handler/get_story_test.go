@@ -13,6 +13,7 @@ import (
 	"github.com/nsnikhil/stories/pkg/story/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -20,17 +21,14 @@ import (
 )
 
 func TestGetStory(t *testing.T) {
-	lgr := reporters.NewLogger("dev", "debug")
 
-	testCases := []struct {
-		name           string
-		actualResult   func() (string, int)
+	testCases := map[string]struct {
+		input          func() (service.StoryService, io.Reader)
 		expectedResult string
 		expectedCode   int
 	}{
-		{
-			name: "test get story success",
-			actualResult: func() (string, int) {
+		"test get story success": {
+			input: func() (service.StoryService, io.Reader) {
 				id := "adbca278-7e5c-4831-bf90-15fadfda0dd1"
 
 				createdAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
@@ -52,75 +50,56 @@ func TestGetStory(t *testing.T) {
 				ms := &service.MockStoriesService{}
 				ms.On("GetStory", id).Return(ds, nil)
 
-				gtReq := contract.GetStoryRequest{
-					StoryID: id,
-				}
-
+				gtReq := contract.GetStoryRequest{StoryID: id}
 				b, err := json.Marshal(gtReq)
 				require.NoError(t, err)
 
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodGet, "/story/get", bytes.NewBuffer(b))
-
-				gh := handler.NewGetStoryHandler(ms)
-
-				mdl.WithError(lgr, gh.GetStory)(w, r)
-
-				return w.Body.String(), w.Code
+				return ms, bytes.NewBuffer(b)
 			},
 			expectedCode:   http.StatusOK,
 			expectedResult: "{\"data\":{\"id\":\"adbca278-7e5c-4831-bf90-15fadfda0dd1\",\"title\":\"title\",\"body\":\"test body\",\"view_count\":25,\"up_votes\":10,\"down_votes\":2,\"created_at\":1596038400,\"updated_at\":1596038400},\"success\":true}",
 		},
-		{
-			name: "test get story failure when req body is nil",
-			actualResult: func() (string, int) {
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodGet, "/story/get", nil)
-
-				gh := handler.NewGetStoryHandler(&service.MockStoriesService{})
-
-				mdl.WithError(lgr, gh.GetStory)(w, r)
-
-				return w.Body.String(), w.Code
+		"test get story failure when req body is nil": {
+			input: func() (service.StoryService, io.Reader) {
+				return &service.MockStoriesService{}, nil
 			},
 			expectedCode:   http.StatusBadRequest,
 			expectedResult: "{\"error\":{\"message\":\"unexpected end of JSON input\"},\"success\":false}",
 		},
-		{
-			name: "test get story failure when service calls fails",
-			actualResult: func() (string, int) {
+		"test get story failure when service calls fails": {
+			input: func() (service.StoryService, io.Reader) {
 				id := "adbca278-7e5c-4831-bf90-15fadfda0dd1"
 
 				ms := &service.MockStoriesService{}
 				ms.On("GetStory", id).Return(&model.Story{}, liberr.WithArgs(liberr.SeverityError, errors.New("failed to get story")))
 
-				gtReq := contract.GetStoryRequest{
-					StoryID: id,
-				}
-
+				gtReq := contract.GetStoryRequest{StoryID: id}
 				b, err := json.Marshal(gtReq)
 				require.NoError(t, err)
 
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodGet, "/story/get", bytes.NewBuffer(b))
-
-				gh := handler.NewGetStoryHandler(ms)
-
-				mdl.WithError(lgr, gh.GetStory)(w, r)
-
-				return w.Body.String(), w.Code
+				return ms, bytes.NewBuffer(b)
 			},
 			expectedCode:   http.StatusInternalServerError,
 			expectedResult: "{\"error\":{\"message\":\"internal server error\"},\"success\":false}",
 		},
 	}
 
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			res, code := testCase.actualResult()
-
-			assert.Equal(t, testCase.expectedCode, code)
-			assert.Equal(t, testCase.expectedResult, res)
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			svc, body := testCase.input()
+			testGetStory(t, testCase.expectedCode, testCase.expectedResult, svc, body)
 		})
 	}
+}
+
+func testGetStory(t *testing.T, expectedCode int, expectedBody string, svc service.StoryService, body io.Reader) {
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/story/get", body)
+
+	gh := handler.NewGetStoryHandler(svc)
+
+	mdl.WithError(reporters.NewLogger("dev", "debug"), gh.GetStory)(w, r)
+
+	assert.Equal(t, expectedCode, w.Code)
+	assert.Equal(t, expectedBody, w.Body.String())
 }

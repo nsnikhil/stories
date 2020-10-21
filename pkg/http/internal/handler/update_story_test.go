@@ -14,6 +14,7 @@ import (
 	"github.com/nsnikhil/stories/pkg/story/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -21,18 +22,13 @@ import (
 )
 
 func TestUpdateStory(t *testing.T) {
-	cfg := config.NewConfig("../../../../local.env")
-	lgr := reporters.NewLogger("dev", "debug")
-
-	testCases := []struct {
-		name           string
-		actualResult   func() (string, int)
+	testCases := map[string]struct {
+		input          func() (service.StoryService, io.Reader)
 		expectedResult string
 		expectedCode   int
 	}{
-		{
-			name: "test update story success",
-			actualResult: func() (string, int) {
+		"test update story success": {
+			input: func() (service.StoryService, io.Reader) {
 				createdAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
 				updatedAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
 
@@ -68,36 +64,20 @@ func TestUpdateStory(t *testing.T) {
 				ms := &service.MockStoriesService{}
 				ms.On("UpdateStory", ds).Return(int64(1), nil)
 
-				uh := handler.NewUpdateStoryHandler(cfg.StoryConfig(), ms)
-
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodPatch, "/story/update", bytes.NewBuffer(b))
-
-				mdl.WithError(lgr, uh.UpdateStory)(w, r)
-
-				return w.Body.String(), w.Code
+				return ms, bytes.NewBuffer(b)
 			},
 			expectedCode:   http.StatusOK,
 			expectedResult: "{\"data\":{\"success\":true},\"success\":true}",
 		},
-		{
-			name: "test update story failure when body is nil",
-			actualResult: func() (string, int) {
-				uh := handler.NewUpdateStoryHandler(cfg.StoryConfig(), &service.MockStoriesService{})
-
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodPatch, "/story/update", nil)
-
-				mdl.WithError(lgr, uh.UpdateStory)(w, r)
-
-				return w.Body.String(), w.Code
+		"test update story failure when body is nil": {
+			input: func() (service.StoryService, io.Reader) {
+				return &service.MockStoriesService{}, nil
 			},
 			expectedCode:   http.StatusBadRequest,
 			expectedResult: "{\"error\":{\"message\":\"unexpected end of JSON input\"},\"success\":false}",
 		},
-		{
-			name: "test update story failure when id is invalid",
-			actualResult: func() (string, int) {
+		"test update story failure when id is invalid": {
+			input: func() (service.StoryService, io.Reader) {
 				createdAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
 				updatedAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
 
@@ -117,21 +97,13 @@ func TestUpdateStory(t *testing.T) {
 				b, err := json.Marshal(upReq)
 				require.NoError(t, err)
 
-				uh := handler.NewUpdateStoryHandler(cfg.StoryConfig(), &service.MockStoriesService{})
-
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodPatch, "/story/update", bytes.NewBuffer(b))
-
-				mdl.WithError(lgr, uh.UpdateStory)(w, r)
-
-				return w.Body.String(), w.Code
+				return &service.MockStoriesService{}, bytes.NewBuffer(b)
 			},
 			expectedCode:   http.StatusBadRequest,
 			expectedResult: "{\"error\":{\"message\":\"invalid id: invalid-id\"},\"success\":false}",
 		},
-		{
-			name: "test update story failure when title is empty",
-			actualResult: func() (string, int) {
+		"test update story failure when title is empty": {
+			input: func() (service.StoryService, io.Reader) {
 				createdAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
 				updatedAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
 
@@ -151,21 +123,13 @@ func TestUpdateStory(t *testing.T) {
 				b, err := json.Marshal(upReq)
 				require.NoError(t, err)
 
-				uh := handler.NewUpdateStoryHandler(cfg.StoryConfig(), &service.MockStoriesService{})
-
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodPatch, "/story/update", bytes.NewBuffer(b))
-
-				mdl.WithError(lgr, uh.UpdateStory)(w, r)
-
-				return w.Body.String(), w.Code
+				return &service.MockStoriesService{}, bytes.NewBuffer(b)
 			},
 			expectedCode:   http.StatusBadRequest,
 			expectedResult: "{\"error\":{\"message\":\"title cannot be empty\"},\"success\":false}",
 		},
-		{
-			name: "test update story failure when body is empty",
-			actualResult: func() (string, int) {
+		"test update story failure when body is empty": {
+			input: func() (service.StoryService, io.Reader) {
 				createdAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
 				updatedAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
 
@@ -185,21 +149,13 @@ func TestUpdateStory(t *testing.T) {
 				b, err := json.Marshal(upReq)
 				require.NoError(t, err)
 
-				uh := handler.NewUpdateStoryHandler(cfg.StoryConfig(), &service.MockStoriesService{})
-
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodPatch, "/story/update", bytes.NewBuffer(b))
-
-				mdl.WithError(lgr, uh.UpdateStory)(w, r)
-
-				return w.Body.String(), w.Code
+				return &service.MockStoriesService{}, bytes.NewBuffer(b)
 			},
 			expectedCode:   http.StatusBadRequest,
 			expectedResult: "{\"error\":{\"message\":\"body cannot be empty\"},\"success\":false}",
 		},
-		{
-			name: "test update story failure when svc call fails",
-			actualResult: func() (string, int) {
+		"test update story failure when svc call fails": {
+			input: func() (service.StoryService, io.Reader) {
 				createdAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
 				updatedAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
 
@@ -235,26 +191,32 @@ func TestUpdateStory(t *testing.T) {
 				ms := &service.MockStoriesService{}
 				ms.On("UpdateStory", ds).Return(int64(0), liberr.WithArgs(liberr.SeverityError, errors.New("failed to update story")))
 
-				uh := handler.NewUpdateStoryHandler(cfg.StoryConfig(), ms)
-
-				w := httptest.NewRecorder()
-				r := httptest.NewRequest(http.MethodPatch, "/story/update", bytes.NewBuffer(b))
-
-				mdl.WithError(lgr, uh.UpdateStory)(w, r)
-
-				return w.Body.String(), w.Code
+				return ms, bytes.NewBuffer(b)
 			},
 			expectedCode:   http.StatusInternalServerError,
 			expectedResult: "{\"error\":{\"message\":\"internal server error\"},\"success\":false}",
 		},
 	}
 
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			res, code := testCase.actualResult()
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			svc, body := testCase.input()
 
-			assert.Equal(t, testCase.expectedCode, code)
-			assert.Equal(t, testCase.expectedResult, res)
+			testUpdateStory(t, testCase.expectedCode, testCase.expectedResult, svc, body)
 		})
 	}
+}
+
+func testUpdateStory(t *testing.T, expectedCode int, expectedBody string, svc service.StoryService, body io.Reader) {
+	cfg := config.NewConfig("../../../../local.env")
+
+	uh := handler.NewUpdateStoryHandler(cfg.StoryConfig(), svc)
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodPatch, "/story/update", body)
+
+	mdl.WithError(reporters.NewLogger("dev", "debug"), uh.UpdateStory)(w, r)
+
+	assert.Equal(t, expectedCode, w.Code)
+	assert.Equal(t, expectedBody, w.Body.String())
 }

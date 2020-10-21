@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/nsnikhil/stories/pkg/http/internal/util"
+	"github.com/nsnikhil/stories/pkg/liberr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -18,79 +20,61 @@ func TestParseRequest(t *testing.T) {
 		ReqData string `json:"req_data"`
 	}
 
-	type Other struct {
-		ReqData int `json:"req_data"`
+	rf := func(method, path string, body io.Reader) *http.Request {
+		req, err := http.NewRequest(method, path, body)
+		require.NoError(t, err)
+
+		return req
 	}
 
-	testCases := []struct {
+	testCases := map[string]struct {
 		name           string
-		actualResult   func() (error, interface{})
+		input          func() *http.Request
 		expectedResult interface{}
 		expectedError  error
 	}{
-		{
-			name: "test request parse success",
-			actualResult: func() (error, interface{}) {
+		"test request parse success": {
+			input: func() *http.Request {
 				cr := CusReq{ReqID: "req-id", ReqData: "req data"}
 
 				b, err := json.Marshal(&cr)
 				require.NoError(t, err)
 
-				r, err := http.NewRequest(http.MethodGet, "/random", bytes.NewBuffer(b))
-				require.NoError(t, err)
-
-				var tr CusReq
-
-				return util.ParseRequest(r, &tr), tr
+				return rf(http.MethodGet, "/random", bytes.NewBuffer(b))
 			},
 			expectedResult: CusReq{ReqID: "req-id", ReqData: "req data"},
 		},
-		{
-			name: "test request parse failure when req is nil",
-			actualResult: func() (error, interface{}) {
-				var tr CusReq
-
-				return util.ParseRequest(nil, &tr), tr
+		"test request parse failure when req is nil": {
+			input:          func() *http.Request { return nil },
+			expectedResult: CusReq{},
+			expectedError:  liberr.WithArgs(liberr.SeverityError, liberr.ValidationError, liberr.Operation("ParseRequest"), errors.New("request is nil")),
+		},
+		"test request parse failure when req body is nil": {
+			input: func() *http.Request {
+				return rf(http.MethodGet, "/random", nil)
 			},
 			expectedResult: CusReq{},
-			expectedError:  errors.New("request is nil"),
+			expectedError:  liberr.WithArgs(liberr.SeverityError, liberr.ValidationError, liberr.Operation("ParseRequest"), errors.New("request body is nil")),
 		},
-		{
-			name: "test request parse failure when req body is nil",
-			actualResult: func() (error, interface{}) {
-				r, err := http.NewRequest(http.MethodGet, "/random", nil)
-				require.NoError(t, err)
-
-				var tr CusReq
-
-				return util.ParseRequest(r, &tr), tr
-			},
-			expectedResult: CusReq{},
-			expectedError:  errors.New("request body is nil"),
-		},
-		{
-			name: "test request parse failure when fail to read body",
-			actualResult: func() (error, interface{}) {
+		"test request parse failure when fail to read body": {
+			input: func() *http.Request {
 				cr := CusReq{ReqID: "req-id", ReqData: "req data"}
 
 				b, err := json.Marshal(&cr)
 				require.NoError(t, err)
 
-				r, err := http.NewRequest(http.MethodGet, "/random", bytes.NewBuffer(b))
-				require.NoError(t, err)
+				r := rf(http.MethodGet, "/random", bytes.NewBuffer(b))
 
 				_, err = ioutil.ReadAll(r.Body)
 				require.NoError(t, err)
 
-				var tr CusReq
-				return util.ParseRequest(r, &tr), tr
+				return r
 			},
 			expectedResult: CusReq{},
-			expectedError:  errors.New("unexpected end of JSON input"),
+			expectedError:  liberr.WithArgs(liberr.SeverityError, liberr.ValidationError, liberr.Operation("ParseRequest.json.Unmarshal"), errors.New("unexpected end of JSON input")),
 		},
-		{
-			name: "test request parse failure when unmarshalling fails",
-			actualResult: func() (error, interface{}) {
+		"test request parse failure when unmarshalling fails": {
+			input: func() *http.Request {
 				type CusReq struct {
 					ReqID   string   `json:"req_id"`
 					ReqData []string `json:"req_data"`
@@ -101,29 +85,28 @@ func TestParseRequest(t *testing.T) {
 				b, err := json.Marshal(&cr)
 				require.NoError(t, err)
 
-				r, err := http.NewRequest(http.MethodGet, "/random", bytes.NewBuffer(b))
-				require.NoError(t, err)
-
-				var tr Other
-
-				return util.ParseRequest(r, &tr), tr
+				return rf(http.MethodGet, "/random", bytes.NewBuffer(b))
 			},
-			expectedResult: Other{},
-			expectedError:  errors.New("json: cannot unmarshal array into Go struct field Other.req_data of type int"),
+			expectedResult: CusReq{ReqID: "req-id"},
+			expectedError:  errors.New("json: cannot unmarshal array into Go struct field CusReq.req_data of type string"),
 		},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			err, res := testCase.actualResult()
+			req := testCase.input()
 
-			if testCase.expectedError == nil {
-				assert.Nil(t, err)
-			} else {
+			var target CusReq
+
+			err := util.ParseRequest(req, &target)
+
+			if testCase.expectedError != nil {
 				assert.Equal(t, testCase.expectedError.Error(), err.Error())
+			} else {
+				assert.Nil(t, err)
 			}
 
-			assert.Equal(t, testCase.expectedResult, res)
+			assert.Equal(t, testCase.expectedResult, target)
 		})
 	}
 }

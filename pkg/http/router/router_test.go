@@ -25,111 +25,50 @@ func TestRouter(t *testing.T) {
 		&service.MockStoriesService{},
 	)
 
-	testCases := []struct {
-		name         string
-		actualResult func() int
+	rf := func(method, path string) *http.Request {
+		req, err := http.NewRequest(method, path, nil)
+		require.NoError(t, err)
+
+		return req
+	}
+
+	testCases := map[string]struct {
+		name    string
+		request *http.Request
 	}{
-		{
-			name: "test ping route",
-			actualResult: func() int {
-				resp := httptest.NewRecorder()
-				req, err := http.NewRequest(http.MethodGet, "/ping", nil)
-				require.NoError(t, err)
-
-				r.ServeHTTP(resp, req)
-
-				return resp.Code
-			},
+		"test ping route": {
+			request: rf(http.MethodGet, "/ping"),
 		},
-		{
-			name: "test add story route",
-			actualResult: func() int {
-				resp := httptest.NewRecorder()
-				req, err := http.NewRequest(http.MethodPost, "/story/add", nil)
-				require.NoError(t, err)
-
-				r.ServeHTTP(resp, req)
-
-				return resp.Code
-			},
+		"test add story route": {
+			request: rf(http.MethodPost, "/story/add"),
 		},
-		{
-			name: "test get story route",
-			actualResult: func() int {
-				resp := httptest.NewRecorder()
-				req, err := http.NewRequest(http.MethodPost, "/story/get", nil)
-				require.NoError(t, err)
-
-				r.ServeHTTP(resp, req)
-
-				return resp.Code
-			},
+		"test get story route": {
+			request: rf(http.MethodPost, "/story/get"),
 		},
-		{
-			name: "test delete story route",
-			actualResult: func() int {
-				resp := httptest.NewRecorder()
-				req, err := http.NewRequest(http.MethodPost, "/story/delete", nil)
-				require.NoError(t, err)
-
-				r.ServeHTTP(resp, req)
-
-				return resp.Code
-			},
+		"test delete story route": {
+			request: rf(http.MethodPost, "/story/delete"),
 		},
-		{
-			name: "test most viewed stories route",
-			actualResult: func() int {
-				resp := httptest.NewRecorder()
-				req, err := http.NewRequest(http.MethodPost, "/story/most-viewed", nil)
-				require.NoError(t, err)
-
-				r.ServeHTTP(resp, req)
-
-				return resp.Code
-			},
+		"test most viewed stories route": {
+			request: rf(http.MethodPost, "/story/most-viewed"),
 		},
-		{
-			name: "test top rated stories route",
-			actualResult: func() int {
-				resp := httptest.NewRecorder()
-				req, err := http.NewRequest(http.MethodPost, "/story/top-rated", nil)
-				require.NoError(t, err)
-
-				r.ServeHTTP(resp, req)
-
-				return resp.Code
-			},
+		"test top rated stories route": {
+			request: rf(http.MethodPost, "/story/top-rated"),
 		},
-		{
-			name: "test search stories route",
-			actualResult: func() int {
-				resp := httptest.NewRecorder()
-				req, err := http.NewRequest(http.MethodPost, "/story/search", nil)
-				require.NoError(t, err)
-
-				r.ServeHTTP(resp, req)
-
-				return resp.Code
-			},
+		"test search stories route": {
+			request: rf(http.MethodPost, "/story/search"),
 		},
-		{
-			name: "test update story route",
-			actualResult: func() int {
-				resp := httptest.NewRecorder()
-				req, err := http.NewRequest(http.MethodPost, "/story/update", nil)
-				require.NoError(t, err)
-
-				r.ServeHTTP(resp, req)
-
-				return resp.Code
-			},
+		"test update story route": {
+			request: rf(http.MethodPost, "/story/update"),
 		},
 	}
 
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			assert.NotEqual(t, http.StatusNotFound, testCase.actualResult())
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+
+			r.ServeHTTP(w, testCase.request)
+
+			assert.NotEqual(t, http.StatusNotFound, w.Code)
 		})
 	}
 }
