@@ -3,6 +3,7 @@ package stories
 import (
 	"context"
 	"github.com/nsnikhil/stories-proto/proto"
+	"github.com/nsnikhil/stories/pkg/liberr"
 	"github.com/nsnikhil/stories/pkg/story/model"
 )
 
@@ -13,11 +14,13 @@ func (ss *Server) AddStory(ctx context.Context, req *proto.AddStoryRequest) (*pr
 		Build()
 
 	if err != nil {
-		return &proto.AddStoryResponse{Success: false}, err
+		return &proto.AddStoryResponse{Success: false},
+			liberr.WithArgs(liberr.Operation("Server.AddStory"), err)
 	}
 
 	if err := ss.svc.AddStory(st); err != nil {
-		return &proto.AddStoryResponse{Success: false}, err
+		return &proto.AddStoryResponse{Success: false},
+			liberr.WithArgs(liberr.Operation("Server.AddStory"), err)
 	}
 
 	//TODO: ADD SUCCESS LOG

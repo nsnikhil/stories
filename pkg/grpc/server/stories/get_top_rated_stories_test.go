@@ -6,6 +6,7 @@ import (
 	"github.com/nsnikhil/stories-proto/proto"
 	"github.com/nsnikhil/stories/pkg/config"
 	"github.com/nsnikhil/stories/pkg/grpc/server/stories"
+	"github.com/nsnikhil/stories/pkg/liberr"
 	"github.com/nsnikhil/stories/pkg/story/model"
 	"github.com/nsnikhil/stories/pkg/story/service"
 	"github.com/stretchr/testify/assert"
@@ -20,15 +21,13 @@ func TestStoriesServerGetTopRatedStories(t *testing.T) {
 	createdAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
 	updatedAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
 
-	testCases := []struct {
-		name           string
-		actualResult   func() (*proto.TopRatedStoriesResponse, error)
+	testCases := map[string]struct {
+		input          func() service.StoryService
 		expectedResult *proto.TopRatedStoriesResponse
 		expectedError  error
 	}{
-		{
-			name: "test get top rated story success",
-			actualResult: func() (*proto.TopRatedStoriesResponse, error) {
+		"test get top rated story success": {
+			input: func() service.StoryService {
 				st, err := model.NewStoryBuilder().
 					SetID("adbca278-7e5c-4831-bf90-15fadfda0dd1").
 					SetTitle(cfg.TitleMaxLength(), "title").
@@ -45,13 +44,7 @@ func TestStoriesServerGetTopRatedStories(t *testing.T) {
 				ms := &service.MockStoriesService{}
 				ms.On("GetTopRatedStories", 0, 10).Return([]model.Story{*st}, nil)
 
-				req := &proto.TopRatedStoriesRequest{
-					Offset: 0,
-					Limit:  10,
-				}
-
-				server := stories.NewStoriesServer(cfg, ms)
-				return server.GetTopRatedStories(context.Background(), req)
+				return ms
 			},
 			expectedResult: &proto.TopRatedStoriesResponse{
 				Stories: []*proto.Story{
@@ -68,31 +61,35 @@ func TestStoriesServerGetTopRatedStories(t *testing.T) {
 				},
 			},
 		},
-		{
-			name: "test get top rated story failure",
-			actualResult: func() (*proto.TopRatedStoriesResponse, error) {
+		"test get top rated story failure": {
+			input: func() service.StoryService {
 				ms := &service.MockStoriesService{}
-				ms.On("GetTopRatedStories", 0, 10).Return([]model.Story{}, errors.New("failed to get top rated story"))
+				ms.On("GetTopRatedStories", 0, 10).Return([]model.Story{}, liberr.WithArgs(errors.New("failed to get top rated story")))
 
-				req := &proto.TopRatedStoriesRequest{
-					Offset: 0,
-					Limit:  10,
-				}
-
-				server := stories.NewStoriesServer(cfg, ms)
-				return server.GetTopRatedStories(context.Background(), req)
+				return ms
 			},
 			expectedResult: (*proto.TopRatedStoriesResponse)(nil),
-			expectedError:  errors.New("failed to get top rated story"),
+			expectedError:  liberr.WithArgs(liberr.Operation("Server.GetTopRatedStories"), liberr.WithArgs(errors.New("failed to get top rated story"))),
 		},
 	}
 
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			res, err := testCase.actualResult()
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			svc := testCase.input()
 
-			assert.Equal(t, testCase.expectedError, err)
-			assert.Equal(t, testCase.expectedResult, res)
+			testStoriesServerGetTopRatedStories(t, testCase.expectedError, testCase.expectedResult, svc)
 		})
 	}
+}
+
+func testStoriesServerGetTopRatedStories(t *testing.T, expectedError error, expectedResult *proto.TopRatedStoriesResponse, svc service.StoryService) {
+	cfg := config.NewConfig("../../../../local.env").StoryConfig()
+
+	server := stories.NewStoriesServer(cfg, svc)
+
+	req := &proto.TopRatedStoriesRequest{Offset: 0, Limit: 10}
+	res, err := server.GetTopRatedStories(context.Background(), req)
+
+	assert.Equal(t, expectedError, err)
+	assert.Equal(t, expectedResult, res)
 }

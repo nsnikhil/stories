@@ -20,7 +20,7 @@ scrape_configs:
   - job_name: 'stories'
     scrape_interval: 5s
     static_configs:
-      - targets: ['stories:8090']
+      - targets: ['stories:8080']
 
 
 

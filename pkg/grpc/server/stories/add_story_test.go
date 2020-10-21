@@ -6,34 +6,23 @@ import (
 	"github.com/nsnikhil/stories-proto/proto"
 	"github.com/nsnikhil/stories/pkg/config"
 	"github.com/nsnikhil/stories/pkg/grpc/server/stories"
-	"github.com/nsnikhil/stories/pkg/story/model"
+	"github.com/nsnikhil/stories/pkg/liberr"
 	"github.com/nsnikhil/stories/pkg/story/service"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
 func TestStoriesServerAddStory(t *testing.T) {
-	cfg := config.NewConfig("../../../../local.env").StoryConfig()
-
-	testCases := []struct {
-		name           string
-		actualResult   func() (*proto.AddStoryResponse, error)
+	testCases := map[string]struct {
+		input          func() (service.StoryService, *proto.AddStoryRequest)
 		expectedResult *proto.AddStoryResponse
 		expectedError  error
 	}{
-		{
-			name: "test add story success",
-			actualResult: func() (*proto.AddStoryResponse, error) {
-				st, err := model.NewStoryBuilder().
-					SetTitle(100, "title").
-					SetBody(100, "test body").
-					Build()
-
-				require.NoError(t, err)
-
+		"test add story success": {
+			input: func() (service.StoryService, *proto.AddStoryRequest) {
 				ms := &service.MockStoriesService{}
-				ms.On("AddStory", st).Return(nil)
+				ms.On("AddStory", mock.AnythingOfType("*model.Story")).Return(nil)
 
 				req := &proto.AddStoryRequest{
 					Story: &proto.Story{
@@ -42,16 +31,14 @@ func TestStoriesServerAddStory(t *testing.T) {
 					},
 				}
 
-				server := stories.NewStoriesServer(cfg, ms)
-				return server.AddStory(context.Background(), req)
+				return ms, req
 			},
 			expectedResult: &proto.AddStoryResponse{
 				Success: true,
 			},
 		},
-		{
-			name: "test add story return error when title is empty",
-			actualResult: func() (*proto.AddStoryResponse, error) {
+		"test add story return error when title is empty": {
+			input: func() (service.StoryService, *proto.AddStoryRequest) {
 				req := &proto.AddStoryRequest{
 					Story: &proto.Story{
 						Title: "",
@@ -59,17 +46,23 @@ func TestStoriesServerAddStory(t *testing.T) {
 					},
 				}
 
-				server := stories.NewStoriesServer(cfg, &service.MockStoriesService{})
-				return server.AddStory(context.Background(), req)
+				return &service.MockStoriesService{}, req
 			},
 			expectedResult: &proto.AddStoryResponse{
 				Success: false,
 			},
-			expectedError: errors.New("title cannot be empty"),
+			expectedError: liberr.WithArgs(
+				liberr.Operation("Server.AddStory"),
+				liberr.WithArgs(
+					liberr.SeverityError,
+					liberr.ValidationError,
+					liberr.Operation("StoryBuilder.Build"),
+					errors.New("title cannot be empty"),
+				),
+			),
 		},
-		{
-			name: "test add story return error when body is empty",
-			actualResult: func() (*proto.AddStoryResponse, error) {
+		"test add story return error when body is empty": {
+			input: func() (service.StoryService, *proto.AddStoryRequest) {
 				req := &proto.AddStoryRequest{
 					Story: &proto.Story{
 						Title: "title",
@@ -77,26 +70,25 @@ func TestStoriesServerAddStory(t *testing.T) {
 					},
 				}
 
-				server := stories.NewStoriesServer(cfg, &service.MockStoriesService{})
-				return server.AddStory(context.Background(), req)
+				return &service.MockStoriesService{}, req
 			},
 			expectedResult: &proto.AddStoryResponse{
 				Success: false,
 			},
-			expectedError: errors.New("body cannot be empty"),
+			expectedError: liberr.WithArgs(
+				liberr.Operation("Server.AddStory"),
+				liberr.WithArgs(
+					liberr.SeverityError,
+					liberr.ValidationError,
+					liberr.Operation("StoryBuilder.Build"),
+					errors.New("body cannot be empty"),
+				),
+			),
 		},
-		{
-			name: "test add story return error service calls fails",
-			actualResult: func() (*proto.AddStoryResponse, error) {
-				st, err := model.NewStoryBuilder().
-					SetTitle(100, "title").
-					SetBody(100, "test body").
-					Build()
-
-				require.NoError(t, err)
-
+		"test add story return error service calls fails": {
+			input: func() (service.StoryService, *proto.AddStoryRequest) {
 				ms := &service.MockStoriesService{}
-				ms.On("AddStory", st).Return(errors.New("failed to add story"))
+				ms.On("AddStory", mock.AnythingOfType("*model.Story")).Return(liberr.WithArgs(errors.New("failed to add story")))
 
 				req := &proto.AddStoryRequest{
 					Story: &proto.Story{
@@ -105,27 +97,30 @@ func TestStoriesServerAddStory(t *testing.T) {
 					},
 				}
 
-				server := stories.NewStoriesServer(cfg, ms)
-				return server.AddStory(context.Background(), req)
+				return ms, req
 			},
 			expectedResult: &proto.AddStoryResponse{
 				Success: false,
 			},
-			expectedError: errors.New("failed to add story"),
+			expectedError: liberr.WithArgs(liberr.Operation("Server.AddStory"), liberr.WithArgs(errors.New("failed to add story"))),
 		},
 	}
 
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			res, err := testCase.actualResult()
-
-			if testCase.expectedError != nil {
-				assert.Equal(t, testCase.expectedError.Error(), err.Error())
-			} else {
-				assert.Nil(t, err)
-			}
-
-			assert.Equal(t, testCase.expectedResult, res)
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			svc, req := testCase.input()
+			testStoriesServerAddStory(t, testCase.expectedError, testCase.expectedResult, req, svc)
 		})
 	}
+}
+
+func testStoriesServerAddStory(t *testing.T, expectedError error, expectedResult *proto.AddStoryResponse, req *proto.AddStoryRequest, svc service.StoryService) {
+	cfg := config.NewConfig("../../../../local.env").StoryConfig()
+
+	server := stories.NewStoriesServer(cfg, svc)
+
+	res, err := server.AddStory(context.Background(), req)
+
+	assert.Equal(t, expectedError, err)
+	assert.Equal(t, expectedResult, res)
 }

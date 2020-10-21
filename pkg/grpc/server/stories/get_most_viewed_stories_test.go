@@ -6,6 +6,7 @@ import (
 	"github.com/nsnikhil/stories-proto/proto"
 	"github.com/nsnikhil/stories/pkg/config"
 	"github.com/nsnikhil/stories/pkg/grpc/server/stories"
+	"github.com/nsnikhil/stories/pkg/liberr"
 	"github.com/nsnikhil/stories/pkg/story/model"
 	"github.com/nsnikhil/stories/pkg/story/service"
 	"github.com/stretchr/testify/assert"
@@ -20,15 +21,13 @@ func TestStoriesServerGetMostViewedStories(t *testing.T) {
 	createdAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
 	updatedAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
 
-	testCases := []struct {
-		name           string
-		actualResult   func() (*proto.MostViewedStoriesResponse, error)
+	testCases := map[string]struct {
+		input          func() service.StoryService
 		expectedResult *proto.MostViewedStoriesResponse
 		expectedError  error
 	}{
-		{
-			name: "test get most viewed story success",
-			actualResult: func() (*proto.MostViewedStoriesResponse, error) {
+		"test get most viewed story success": {
+			input: func() service.StoryService {
 				st, err := model.NewStoryBuilder().
 					SetID("adbca278-7e5c-4831-bf90-15fadfda0dd1").
 					SetTitle(cfg.TitleMaxLength(), "title").
@@ -45,13 +44,7 @@ func TestStoriesServerGetMostViewedStories(t *testing.T) {
 				ms := &service.MockStoriesService{}
 				ms.On("GetMostViewsStories", 0, 10).Return([]model.Story{*st}, nil)
 
-				req := &proto.MostViewedStoriesRequest{
-					Offset: 0,
-					Limit:  10,
-				}
-
-				server := stories.NewStoriesServer(cfg, ms)
-				return server.GetMostViewedStories(context.Background(), req)
+				return ms
 			},
 			expectedResult: &proto.MostViewedStoriesResponse{
 				Stories: []*proto.Story{
@@ -68,31 +61,35 @@ func TestStoriesServerGetMostViewedStories(t *testing.T) {
 				},
 			},
 		},
-		{
-			name: "test get most viewed story failure",
-			actualResult: func() (*proto.MostViewedStoriesResponse, error) {
+		"test get most viewed story failure": {
+			input: func() service.StoryService {
 				ms := &service.MockStoriesService{}
-				ms.On("GetMostViewsStories", 0, 10).Return([]model.Story{}, errors.New("failed to get most viewed story"))
+				ms.On("GetMostViewsStories", 0, 10).Return([]model.Story{}, liberr.WithArgs(errors.New("failed to get most viewed story")))
 
-				req := &proto.MostViewedStoriesRequest{
-					Offset: 0,
-					Limit:  10,
-				}
-
-				server := stories.NewStoriesServer(cfg, ms)
-				return server.GetMostViewedStories(context.Background(), req)
+				return ms
 			},
 			expectedResult: (*proto.MostViewedStoriesResponse)(nil),
-			expectedError:  errors.New("failed to get most viewed story"),
+			expectedError:  liberr.WithArgs(liberr.Operation("Server.GetMostViewedStories"), liberr.WithArgs(errors.New("failed to get most viewed story"))),
 		},
 	}
 
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			res, err := testCase.actualResult()
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			svc := testCase.input()
 
-			assert.Equal(t, testCase.expectedError, err)
-			assert.Equal(t, testCase.expectedResult, res)
+			testStoriesServerGetMostViewedStories(t, testCase.expectedError, testCase.expectedResult, svc)
 		})
 	}
+}
+
+func testStoriesServerGetMostViewedStories(t *testing.T, expectedError error, expectedResult *proto.MostViewedStoriesResponse, svc service.StoryService) {
+	cfg := config.NewConfig("../../../../local.env").StoryConfig()
+
+	server := stories.NewStoriesServer(cfg, svc)
+
+	req := &proto.MostViewedStoriesRequest{Offset: 0, Limit: 10}
+	res, err := server.GetMostViewedStories(context.Background(), req)
+
+	assert.Equal(t, expectedError, err)
+	assert.Equal(t, expectedResult, res)
 }

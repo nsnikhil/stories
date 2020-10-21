@@ -6,6 +6,7 @@ import (
 	"github.com/nsnikhil/stories-proto/proto"
 	"github.com/nsnikhil/stories/pkg/config"
 	"github.com/nsnikhil/stories/pkg/grpc/server/stories"
+	"github.com/nsnikhil/stories/pkg/liberr"
 	"github.com/nsnikhil/stories/pkg/story/model"
 	"github.com/nsnikhil/stories/pkg/story/service"
 	"github.com/stretchr/testify/assert"
@@ -21,15 +22,13 @@ func TestStoriesServerUpdateStory(t *testing.T) {
 	createdAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
 	updatedAt := time.Date(2020, 07, 29, 16, 0, 0, 0, time.UTC)
 
-	testCases := []struct {
-		name           string
-		actualResult   func() (*proto.UpdateStoryResponse, error)
+	testCases := map[string]struct {
+		input          func() (service.StoryService, *proto.UpdateStoryRequest)
 		expectedResult *proto.UpdateStoryResponse
 		expectedError  error
 	}{
-		{
-			name: "test update story success",
-			actualResult: func() (*proto.UpdateStoryResponse, error) {
+		"test update story success": {
+			input: func() (service.StoryService, *proto.UpdateStoryRequest) {
 				st, err := model.NewStoryBuilder().
 					SetID("adbca278-7e5c-4831-bf90-15fadfda0dd1").
 					SetTitle(cfg.TitleMaxLength(), "title").
@@ -59,14 +58,12 @@ func TestStoriesServerUpdateStory(t *testing.T) {
 					},
 				}
 
-				server := stories.NewStoriesServer(cfg, ms)
-				return server.UpdateStory(context.Background(), req)
+				return ms, req
 			},
 			expectedResult: &proto.UpdateStoryResponse{Success: true},
 		},
-		{
-			name: "test update story failure when uuid is invalid",
-			actualResult: func() (*proto.UpdateStoryResponse, error) {
+		"test update story failure when uuid is invalid": {
+			input: func() (service.StoryService, *proto.UpdateStoryRequest) {
 				req := &proto.UpdateStoryRequest{
 					Story: &proto.Story{
 						Id:            "abc",
@@ -80,15 +77,21 @@ func TestStoriesServerUpdateStory(t *testing.T) {
 					},
 				}
 
-				server := stories.NewStoriesServer(cfg, &service.MockStoriesService{})
-				return server.UpdateStory(context.Background(), req)
+				return &service.MockStoriesService{}, req
 			},
 			expectedResult: &proto.UpdateStoryResponse{Success: false},
-			expectedError:  errors.New("invalid id: abc"),
+			expectedError: liberr.WithArgs(
+				liberr.Operation("Server.UpdateStory"),
+				liberr.WithArgs(
+					liberr.SeverityError,
+					liberr.ValidationError,
+					liberr.Operation("StoryBuilder.Build"),
+					errors.New("invalid id: abc"),
+				),
+			),
 		},
-		{
-			name: "test update story failure when title is empty",
-			actualResult: func() (*proto.UpdateStoryResponse, error) {
+		"test update story failure when title is empty": {
+			input: func() (service.StoryService, *proto.UpdateStoryRequest) {
 				req := &proto.UpdateStoryRequest{
 					Story: &proto.Story{
 						Id:            "adbca278-7e5c-4831-bf90-15fadfda0dd1",
@@ -102,15 +105,21 @@ func TestStoriesServerUpdateStory(t *testing.T) {
 					},
 				}
 
-				server := stories.NewStoriesServer(cfg, &service.MockStoriesService{})
-				return server.UpdateStory(context.Background(), req)
+				return &service.MockStoriesService{}, req
 			},
 			expectedResult: &proto.UpdateStoryResponse{Success: false},
-			expectedError:  errors.New("title cannot be empty"),
+			expectedError: liberr.WithArgs(
+				liberr.Operation("Server.UpdateStory"),
+				liberr.WithArgs(
+					liberr.SeverityError,
+					liberr.ValidationError,
+					liberr.Operation("StoryBuilder.Build"),
+					errors.New("title cannot be empty"),
+				),
+			),
 		},
-		{
-			name: "test update story failure when body is empty",
-			actualResult: func() (*proto.UpdateStoryResponse, error) {
+		"test update story failure when body is empty": {
+			input: func() (service.StoryService, *proto.UpdateStoryRequest) {
 				req := &proto.UpdateStoryRequest{
 					Story: &proto.Story{
 						Id:            "adbca278-7e5c-4831-bf90-15fadfda0dd1",
@@ -124,15 +133,21 @@ func TestStoriesServerUpdateStory(t *testing.T) {
 					},
 				}
 
-				server := stories.NewStoriesServer(cfg, &service.MockStoriesService{})
-				return server.UpdateStory(context.Background(), req)
+				return &service.MockStoriesService{}, req
 			},
 			expectedResult: &proto.UpdateStoryResponse{Success: false},
-			expectedError:  errors.New("body cannot be empty"),
+			expectedError: liberr.WithArgs(
+				liberr.Operation("Server.UpdateStory"),
+				liberr.WithArgs(
+					liberr.SeverityError,
+					liberr.ValidationError,
+					liberr.Operation("StoryBuilder.Build"),
+					errors.New("body cannot be empty"),
+				),
+			),
 		},
-		{
-			name: "test update story failure when title exceeds max length",
-			actualResult: func() (*proto.UpdateStoryResponse, error) {
+		"test update story failure when title exceeds max length": {
+			input: func() (service.StoryService, *proto.UpdateStoryRequest) {
 				var title strings.Builder
 				for i := 0; i < 101; i++ {
 					title.WriteString("a")
@@ -151,15 +166,21 @@ func TestStoriesServerUpdateStory(t *testing.T) {
 					},
 				}
 
-				server := stories.NewStoriesServer(cfg, &service.MockStoriesService{})
-				return server.UpdateStory(context.Background(), req)
+				return &service.MockStoriesService{}, req
 			},
 			expectedResult: &proto.UpdateStoryResponse{Success: false},
-			expectedError:  errors.New("title max length exceeded"),
+			expectedError: liberr.WithArgs(
+				liberr.Operation("Server.UpdateStory"),
+				liberr.WithArgs(
+					liberr.SeverityError,
+					liberr.ValidationError,
+					liberr.Operation("StoryBuilder.Build"),
+					errors.New("title max length exceeded"),
+				),
+			),
 		},
-		{
-			name: "test update story failure when body exceeds max length",
-			actualResult: func() (*proto.UpdateStoryResponse, error) {
+		"test update story failure when body exceeds max length": {
+			input: func() (service.StoryService, *proto.UpdateStoryRequest) {
 				var body strings.Builder
 				for i := 0; i < 100001; i++ {
 					body.WriteString("a")
@@ -178,15 +199,21 @@ func TestStoriesServerUpdateStory(t *testing.T) {
 					},
 				}
 
-				server := stories.NewStoriesServer(cfg, &service.MockStoriesService{})
-				return server.UpdateStory(context.Background(), req)
+				return &service.MockStoriesService{}, req
 			},
 			expectedResult: &proto.UpdateStoryResponse{Success: false},
-			expectedError:  errors.New("body max length exceeded"),
+			expectedError: liberr.WithArgs(
+				liberr.Operation("Server.UpdateStory"),
+				liberr.WithArgs(
+					liberr.SeverityError,
+					liberr.ValidationError,
+					liberr.Operation("StoryBuilder.Build"),
+					errors.New("body max length exceeded"),
+				),
+			),
 		},
-		{
-			name: "test update story failure when service returns error",
-			actualResult: func() (*proto.UpdateStoryResponse, error) {
+		"test update story failure when service returns error": {
+			input: func() (service.StoryService, *proto.UpdateStoryRequest) {
 				st, err := model.NewStoryBuilder().
 					SetID("adbca278-7e5c-4831-bf90-15fadfda0dd1").
 					SetTitle(cfg.TitleMaxLength(), "title").
@@ -200,7 +227,7 @@ func TestStoriesServerUpdateStory(t *testing.T) {
 				require.NoError(t, err)
 
 				ms := &service.MockStoriesService{}
-				ms.On("UpdateStory", st).Return(int64(0), errors.New("failed to update story"))
+				ms.On("UpdateStory", st).Return(int64(0), liberr.WithArgs(errors.New("failed to update story")))
 
 				req := &proto.UpdateStoryRequest{
 					Story: &proto.Story{
@@ -215,25 +242,29 @@ func TestStoriesServerUpdateStory(t *testing.T) {
 					},
 				}
 
-				server := stories.NewStoriesServer(cfg, ms)
-				return server.UpdateStory(context.Background(), req)
+				return ms, req
 			},
 			expectedResult: &proto.UpdateStoryResponse{Success: false},
-			expectedError:  errors.New("failed to update story"),
+			expectedError:  liberr.WithArgs(liberr.Operation("Server.UpdateStory"), liberr.WithArgs(errors.New("failed to update story"))),
 		},
 	}
 
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			res, err := testCase.actualResult()
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			svc, req := testCase.input()
 
-			if testCase.expectedError != nil {
-				assert.Equal(t, testCase.expectedError.Error(), err.Error())
-			} else {
-				assert.Nil(t, err)
-			}
-
-			assert.Equal(t, testCase.expectedResult, res)
+			testStoriesServerUpdateStory(t, testCase.expectedError, testCase.expectedResult, req, svc)
 		})
 	}
+}
+
+func testStoriesServerUpdateStory(t *testing.T, expectedError error, expectedResult *proto.UpdateStoryResponse, req *proto.UpdateStoryRequest, svc service.StoryService) {
+	cfg := config.NewConfig("../../../../local.env").StoryConfig()
+
+	server := stories.NewStoriesServer(cfg, svc)
+
+	res, err := server.UpdateStory(context.Background(), req)
+
+	assert.Equal(t, expectedError, err)
+	assert.Equal(t, expectedResult, res)
 }
