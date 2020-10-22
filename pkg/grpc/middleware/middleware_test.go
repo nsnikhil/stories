@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"github.com/nsnikhil/stories/pkg/grpc/middleware"
+	"github.com/nsnikhil/stories/pkg/liberr"
 	reporters "github.com/nsnikhil/stories/pkg/reporting"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -83,7 +84,30 @@ func TestWithErrorLogger(t *testing.T) {
 	f := middleware.WithErrorLogger(lgr)
 
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return nil, errors.New("some error")
+		db := func() error {
+			return liberr.WithArgs(
+				liberr.Operation("db.insert"),
+				liberr.Kind("databaseError"),
+				liberr.SeverityError,
+				errors.New("insertion failed"),
+			)
+		}
+
+		svc := func() error {
+			return liberr.WithArgs(
+				liberr.Operation("svc.addUser"),
+				liberr.Kind("dependencyError"),
+				liberr.SeverityWarn,
+				db(),
+			)
+		}
+
+		return nil, liberr.WithArgs(
+			liberr.Operation("handler.addUser"),
+			liberr.InternalError,
+			liberr.SeverityInfo,
+			svc(),
+		)
 	}
 
 	req := "request"
@@ -91,7 +115,7 @@ func TestWithErrorLogger(t *testing.T) {
 	_, err := f(context.Background(), req, &grpc.UnaryServerInfo{}, handler)
 	require.Error(t, err)
 
-	assert.True(t, strings.Contains(buf.String(), "some error"))
+	assert.True(t, strings.Contains(buf.String(), "insertion failed"))
 }
 
 func TestWithPrometheus(t *testing.T) {

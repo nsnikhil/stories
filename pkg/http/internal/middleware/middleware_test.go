@@ -27,11 +27,34 @@ func TestWithErrorHandling(t *testing.T) {
 		{
 			name: "test error middleware with typed error",
 			handler: func(resp http.ResponseWriter, req *http.Request) error {
-				return liberr.WithArgs(liberr.SeverityError, liberr.Operation("database.duplicated_record"), liberr.ValidationError, errors.New("some error"))
+				db := func() error {
+					return liberr.WithArgs(
+						liberr.Operation("db.insert"),
+						liberr.Kind("databaseError"),
+						liberr.SeverityError,
+						errors.New("insertion failed"),
+					)
+				}
+
+				svc := func() error {
+					return liberr.WithArgs(
+						liberr.Operation("svc.addUser"),
+						liberr.Kind("dependencyError"),
+						liberr.SeverityWarn,
+						db(),
+					)
+				}
+
+				return liberr.WithArgs(
+					liberr.Operation("handler.addUser"),
+					liberr.ValidationError,
+					liberr.SeverityInfo,
+					svc(),
+				)
 			},
-			expectedResult: "{\"error\":{\"message\":\"some error\"},\"success\":false}",
+			expectedResult: "{\"error\":{\"message\":\"insertion failed\"},\"success\":false}",
 			expectedCode:   http.StatusBadRequest,
-			expectedLog:    "kind: validationError  operations: database.duplicated_record  severity: error  cause: some error",
+			expectedLog:    "insertion failed",
 		},
 		{
 			name: "test error middleware with error",

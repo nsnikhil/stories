@@ -1,6 +1,7 @@
 package liberr
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -24,29 +25,6 @@ func (e *Error) Kind() Kind {
 	}
 
 	return t.Kind()
-}
-
-//TODO: DECIDE THE FINAL IMPLEMENTATION OF THE DETAILS METHOD
-func (e *Error) Details() string {
-	b := &strings.Builder{}
-
-	if len(e.kind) != 0 {
-		b.WriteString(fmt.Sprintf(" kind: %v ", e.kind))
-	}
-
-	if len(e.operation) != 0 {
-		b.WriteString(fmt.Sprintf(" operations: %v ", e.operation))
-	}
-
-	if len(e.severity) != 0 {
-		b.WriteString(fmt.Sprintf(" severity: %v ", e.severity))
-	}
-
-	if e.cause != nil {
-		b.WriteString(fmt.Sprintf(" cause: %v ", e.cause))
-	}
-
-	return strings.TrimSpace(b.String())
 }
 
 func (e *Error) Operation() Operation {
@@ -80,6 +58,10 @@ func (e *Error) Severity() Severity {
 
 func (e *Error) Unwrap() error {
 	return e.cause
+}
+
+func (e *Error) Is(target error) bool {
+	return errors.Is(e.cause, target)
 }
 
 //TODO: DECIDE THE FINAL IMPLEMENTATION OF THE ERROR METHOD
@@ -119,4 +101,56 @@ func WithArgs(args ...interface{}) *Error {
 	}
 
 	return e
+}
+
+func (e *Error) EncodedStack() string {
+	var encode func(d map[string]interface{}) string
+	encode = func(d map[string]interface{}) string {
+		b := new(strings.Builder)
+
+		for k, v := range d {
+			t, ok := v.(map[string]interface{})
+
+			var val string
+
+			if ok {
+				val = encode(t)
+			} else {
+				val = fmt.Sprintf("%s", v)
+			}
+
+			b.WriteString(fmt.Sprintf(" %s:%s ", k, val))
+		}
+
+		return fmt.Sprintf("[%s]", strings.TrimSpace(b.String()))
+	}
+
+	return encode(e.Stack())
+}
+
+func (e *Error) Stack() map[string]interface{} {
+	res := make(map[string]interface{})
+
+	if len(e.kind) != 0 {
+		res["kind"] = string(e.kind)
+	}
+
+	if len(e.operation) != 0 {
+		res["operation"] = string(e.operation)
+	}
+
+	if len(e.severity) != 0 {
+		res["severity"] = string(e.severity)
+	}
+
+	if e.cause != nil {
+		t, ok := e.cause.(*Error)
+		if ok {
+			res["cause"] = t.Stack()
+		} else {
+			res["cause"] = e.cause.Error()
+		}
+	}
+
+	return res
 }

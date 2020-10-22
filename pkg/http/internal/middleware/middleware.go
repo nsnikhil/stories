@@ -21,7 +21,7 @@ func WithError(lgr *zap.Logger, handler func(resp http.ResponseWriter, req *http
 
 		t, ok := err.(*liberr.Error)
 		if ok {
-			lgr.Error(t.Details())
+			lgr.Error(t.EncodedStack())
 		} else {
 			lgr.Error(err.Error())
 		}
